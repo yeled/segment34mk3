@@ -351,7 +351,7 @@
     <string id="settings_current_location_military" scope="settings">Current Location (Military Grid Reference System)</string>
     <string id="settings_current_location_accuracy" scope="settings">Current Location Accuracy</string>
     <string id="settings_line_2_above_clock" scope="settings">Line 2 above clock shows:</string>
-    <string id="settings_weather_conditions_precipitation_chance" scope="settings">Weather conditions + Percipitation chance</string>
+    <string id="settings_weather_conditions_precipitation_chance" scope="settings">Weather conditions + Precipitation chance</string>
     <string id="settings_line_below_clock" scope="settings">Line below clock shows:</string>
     <string id="settings_bottom_field_layout" scope="settings">Bottom field layout (number of digits per field)</string>
     <string id="settings_auto_default_layout" scope="settings">Auto - Default layout depending on screen size</string>
