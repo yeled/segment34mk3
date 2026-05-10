@@ -46,7 +46,7 @@ class Segment34App extends Application.AppBase {
 
     hidden function updateTemporalEvent() as Void {
         var provider = (Application.Properties.getValue("weatherProvider") as Number);
-        if (provider == 1 || provider == 2) {
+        if (provider == 1 || provider == 2 || provider == 3) {
             var interval = Application.Properties.getValue("owmRefreshInterval") as Number;
             var hasData = Application.Storage.getValue("wx_last_update") != null;
             Background.registerForTemporalEvent(new Time.Duration(hasData ? interval : 300));

@@ -486,7 +486,9 @@
     <string id="settings_garmin" scope="settings">Garmin</string>
     <string id="settings_openweathermap" scope="settings">OpenWeatherMap (siehe FAQ 5.0.0 auf ludw.github.io/faq für Einrichtung)</string>
     <string id="settings_open_meteo" scope="settings">Open-Meteo (kostenlos, kein API-Schlüssel)</string>
+    <string id="settings_tomorrow_io" scope="settings">Tomorrow.io (kostenloser API-Schlüssel von tomorrow.io erforderlich)</string>
     <string id="settings_owm_api_key" scope="settings">OWM API-Schlüssel</string>
+    <string id="settings_tomorrow_api_key" scope="settings">Tomorrow.io API-Schlüssel</string>
     <string id="settings_owm_location_override" scope="settings">Standort-Überschreibung (Breitengrad,Längengrad z.B. 51.5,-0.1 — leer lassen für Garmin-Standort)</string>
     <string id="settings_owm_refresh_interval" scope="settings">Wetter-Aktualisierungsintervall</string>
     <string id="settings_every_15_min" scope="settings">Alle 15 Min.</string>

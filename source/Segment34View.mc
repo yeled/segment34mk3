@@ -1090,7 +1090,7 @@ class Segment34View extends WatchUi.WatchFace {
     }
 
     hidden function updateWeather() as Void {
-        if (propWeatherProvider == 1 || propWeatherProvider == 2) {
+        if (propWeatherProvider == 1 || propWeatherProvider == 2 || propWeatherProvider == 3) {
             // Background service handles fetching; view only reads from Application.Storage.
             wxError = Application.Storage.getValue("wx_error") as String?;
             try { weatherCondition = weatherStorage.read(); } catch(e) {}

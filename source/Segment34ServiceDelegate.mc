@@ -15,12 +15,15 @@ class Segment34ServiceDelegate extends System.ServiceDelegate {
     function onTemporalEvent() as Void {
         var weatherProvider = Application.Properties.getValue("weatherProvider") as Number;
 
-        if (weatherProvider != 1 && weatherProvider != 2) { return; }
+        if (weatherProvider != 1 && weatherProvider != 2 && weatherProvider != 3) { return; }
 
-        // OWM requires an API key; Open-Meteo does not.
+        // OWM and Tomorrow.io require API keys; Open-Meteo does not.
         var apiKey = "" as String;
         if (weatherProvider == 1) {
             apiKey = Application.Properties.getValue("owmApiKey") as String;
+            if (apiKey.length() == 0) { return; }
+        } else if (weatherProvider == 3) {
+            apiKey = Application.Properties.getValue("tomorrowApiKey") as String;
             if (apiKey.length() == 0) { return; }
         }
 
@@ -70,6 +73,9 @@ class Segment34ServiceDelegate extends System.ServiceDelegate {
         } else if (weatherProvider == 2) {
             var service = new OpenMeteoService();
             service.fetchWeather(lat, lon);
+        } else if (weatherProvider == 3) {
+            var service = new TomorrowService();
+            service.fetchWeather(lat, lon, apiKey);
         }
     }
 

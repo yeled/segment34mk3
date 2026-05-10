@@ -321,10 +321,15 @@
             <listEntry value="0">@Strings.settings_garmin</listEntry>
             <listEntry value="1">@Strings.settings_openweathermap</listEntry>
             <listEntry value="2">@Strings.settings_open_meteo</listEntry>
+            <listEntry value="3">@Strings.settings_tomorrow_io</listEntry>
         </settingConfig>
     </setting>
 
     <setting propertyKey="@Properties.owmApiKey" title="@Strings.settings_owm_api_key">
+        <settingConfig type="alphanumeric" />
+    </setting>
+
+    <setting propertyKey="@Properties.tomorrowApiKey" title="@Strings.settings_tomorrow_api_key">
         <settingConfig type="alphanumeric" />
     </setting>
 
