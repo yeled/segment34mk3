@@ -135,6 +135,8 @@ class Segment34View extends WatchUi.WatchFace {
     hidden var propMiddleValueShows as Number = 10;
     hidden var propRightValueShows as Number = 0;
     hidden var propFourthValueShows as Number = 0;
+    hidden var propComplication1Label as String = "";
+    hidden var propComplication2Label as String = "";
     hidden var propAlwaysShowSeconds as Boolean = false;
     hidden var propUpdateFreq as Number = 5;
     hidden var propShowClockBg as Boolean = true;
@@ -274,6 +276,8 @@ class Segment34View extends WatchUi.WatchFace {
         propMiddleValueShows = p.getValue("middleValueShows") as Number;
         propRightValueShows = p.getValue("rightValueShows") as Number;
         propFourthValueShows = p.getValue("fourthValueShows") as Number;
+        propComplication1Label = p.getValue("complication1Label") as String;
+        propComplication2Label = p.getValue("complication2Label") as String;
         propBottomFieldShows = p.getValue("bottomFieldShows") as Number;
         loadBottomField2Property();
         propLeftBarShows = p.getValue("leftBarShows") as Number;
@@ -336,7 +340,8 @@ class Segment34View extends WatchUi.WatchFace {
             propFontSize, propIsMetricDistance, propPressureUnit, propShowTempUnit,
             propWeatherFormat1, propWeatherFormat2,
             propSunriseFieldShows, propSunsetFieldShows,
-            propLeftValueShows, propMiddleValueShows, propRightValueShows, propFourthValueShows
+            propLeftValueShows, propMiddleValueShows, propRightValueShows, propFourthValueShows,
+            propComplication1Label, propComplication2Label
         );
         updateActiveLabels();
 

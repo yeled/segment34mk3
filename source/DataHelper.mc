@@ -27,6 +27,13 @@ class DataHelper {
     // Complication state
     hidden var cgmComplicationId as Complications.Id? = null;
     hidden var cgmAgeComplicationId as Complications.Id? = null;
+    // User-configurable generic complication slots (looked up by typed-in label)
+    hidden var _userCompLabel1 as String = "";
+    hidden var _userCompLabel2 as String = "";
+    hidden var _userCompId1 as Complications.Id? = null;
+    hidden var _userCompId2 as Complications.Id? = null;
+    hidden var _userCompResolved1 as Boolean = false;
+    hidden var _userCompResolved2 as Boolean = false;
     var vo2RunTrend as String = "";
     var vo2BikeTrend as String = "";
 
@@ -430,6 +437,66 @@ class DataHelper {
             }
         } catch (e) {}
         return null;
+    }
+
+    // Generic complication lookup by short or long label; matches any complication
+    // type (built-in or 3rd party) so users can pick whatever appears in the
+    // Garmin complications picker.
+    hidden function getComplicationIdByLabel(targetLabel as String) as Complications.Id? {
+        try {
+            var iter = Complications.getComplications();
+            var comp = iter.next();
+            while (comp != null) {
+                var shortL = comp.shortLabel;
+                var longL = comp.longLabel;
+                if ((shortL != null && shortL.equals(targetLabel)) ||
+                    (longL != null && longL.equals(targetLabel))) {
+                    return comp.complicationId;
+                }
+                comp = iter.next();
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    function setUserComplicationLabels(label1 as String, label2 as String) as Void {
+        if (!label1.equals(_userCompLabel1)) {
+            _userCompLabel1 = label1;
+            _userCompId1 = null;
+            _userCompResolved1 = false;
+        }
+        if (!label2.equals(_userCompLabel2)) {
+            _userCompLabel2 = label2;
+            _userCompId2 = null;
+            _userCompResolved2 = false;
+        }
+    }
+
+    function getUserComplicationValue(slot as Number, width as Number) as String {
+        try {
+            var label = (slot == 0) ? _userCompLabel1 : _userCompLabel2;
+            if (label.length() == 0) { return ""; }
+            var id = (slot == 0) ? _userCompId1 : _userCompId2;
+            var resolved = (slot == 0) ? _userCompResolved1 : _userCompResolved2;
+            if (id == null) {
+                if (resolved) { return ""; } // already tried, not found
+                id = getComplicationIdByLabel(label);
+                if (slot == 0) {
+                    _userCompId1 = id;
+                    _userCompResolved1 = true;
+                } else {
+                    _userCompId2 = id;
+                    _userCompResolved2 = true;
+                }
+                if (id == null) { return ""; }
+            }
+            var comp = Complications.getComplication(id);
+            if (comp == null || comp.value == null) { return ""; }
+            var s = comp.value.toString();
+            if (width > 0 && s.length() > width) { s = s.substring(0, width); }
+            return s;
+        } catch (e) {}
+        return "";
     }
 
     hidden function convertCgmTrendToArrow(trend as String) as String {
