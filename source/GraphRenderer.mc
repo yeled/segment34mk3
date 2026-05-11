@@ -479,6 +479,10 @@ class GraphRenderer {
 
         var nowEpoch = Time.now().value();
         var futureCutoff = nowEpoch - 3600;
+        // Cap the visible window so providers with 3-hour intervals (e.g. OWM free tier)
+        // don't fill 8 bars with a 24-hour span that wraps past midnight. Hourly providers
+        // are still bounded by the 8-entry cap below.
+        var maxFutureCutoff = nowEpoch + 12 * 3600;
 
         // Collect current+future entries, then sort by forecastTime ascending. Some providers
         // (and Garmin's native API on certain firmwares) hand back the hourly array in a
@@ -489,7 +493,8 @@ class GraphRenderer {
             var entry = hf[i] as Dictionary;
             var ftRaw = entry.get("forecastTime");
             if(ftRaw == null) { continue; }
-            if((ftRaw as Number) < futureCutoff) { continue; }
+            var ft = ftRaw as Number;
+            if(ft < futureCutoff || ft > maxFutureCutoff) { continue; }
             entries.add(entry);
         }
         if(entries.size() == 0) { return []; }
