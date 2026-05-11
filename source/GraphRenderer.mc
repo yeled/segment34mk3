@@ -454,8 +454,10 @@ class GraphRenderer {
     }
 
     // Hourly precipitation forecast graph. Reads cached forecast from Application.Storage
-    // and plots up to 8 upcoming hourly slots. Y-axis is mm (rounded up). Empty hours
-    // (no precip) render as 1px stubs via the shared >= 8 daily-mode path in drawBarGraph.
+    // and plots up to 8 upcoming hourly slots. Prefers precipitationAmount (mm, Y-axis is
+    // ceil'd mm); falls back to precipitationChance (%, Y-axis is 100) when no amount data
+    // is present (e.g. Garmin native provider). Empty hours render as 1px stubs via the
+    // shared >= 8 daily-mode path in drawBarGraph.
     hidden function getHourlyPrecipitationArray() as Array<Number> {
         graphGoalLine = null;
         cachedGraphData2 = null;
@@ -466,13 +468,15 @@ class GraphRenderer {
         if(hf == null || hf.size() == 0) { return []; }
 
         var nowEpoch = Time.now().value();
-        var raw = [] as Array<Float>;
+        var rawAmount = [] as Array<Float>;
+        var rawChance = [] as Array<Number>;
         var maxAmount = 0.0f;
+        var hasAnyAmount = false;
         var firstEpoch = 0;
         var lastEpoch = 0;
         var maxEntries = 8;
 
-        for(var i = 0; i < hf.size() && raw.size() < maxEntries; i++) {
+        for(var i = 0; i < hf.size() && rawAmount.size() < maxEntries; i++) {
             var entry = hf[i] as Dictionary;
             var ftRaw = entry.get("forecastTime");
             if(ftRaw == null) { continue; }
@@ -480,29 +484,43 @@ class GraphRenderer {
             // Include the current hour and future slots; skip past hours.
             if(ft < nowEpoch - 3600) { continue; }
             var amt = entry.get("precipitationAmount");
-            var v = (amt != null) ? (amt as Float).toFloat() : 0.0f;
-            if(raw.size() == 0) { firstEpoch = ft; }
+            var amtF = (amt != null) ? (amt as Float).toFloat() : 0.0f;
+            if(amtF > 0.0f) { hasAnyAmount = true; }
+            var ch = entry.get("precipitationChance");
+            var chN = (ch != null) ? (ch as Number) : 0;
+            if(rawAmount.size() == 0) { firstEpoch = ft; }
             lastEpoch = ft;
-            raw.add(v);
-            if(v > maxAmount) { maxAmount = v; }
+            rawAmount.add(amtF);
+            rawChance.add(chN);
+            if(amtF > maxAmount) { maxAmount = amtF; }
         }
 
-        if(raw.size() == 0) { return []; }
+        if(rawAmount.size() == 0) { return []; }
 
         _precipFirstHourEpoch = firstEpoch;
         _precipLastHourEpoch = lastEpoch;
         // Invalidate the X-label cache so the new time range is reflected immediately.
         _cachedXLabelEpochMin = -1;
 
-        // Normalise so the tallest bar fills the graph. Use ceil(max) for axis label so a
-        // 0.5 mm peak still reads as "1" mm rather than truncating to "0".
-        var ceiledMax = Math.ceil(maxAmount).toFloat();
-        if(ceiledMax < 1.0f) { ceiledMax = 1.0f; }
-        cachedGraphYMax = ceiledMax;
-
         var ret = [] as Array<Number>;
-        for(var i = 0; i < raw.size(); i++) {
-            ret.add(Math.round(raw[i] / ceiledMax * 100).toNumber());
+        if(hasAnyAmount) {
+            // Normalise so the tallest bar fills the graph. Use ceil(max) for axis label so
+            // a 0.5 mm peak still reads as "1" mm rather than truncating to "0".
+            var ceiledMax = Math.ceil(maxAmount).toFloat();
+            if(ceiledMax < 1.0f) { ceiledMax = 1.0f; }
+            cachedGraphYMax = ceiledMax;
+            for(var i = 0; i < rawAmount.size(); i++) {
+                ret.add(Math.round(rawAmount[i] / ceiledMax * 100).toNumber());
+            }
+        } else {
+            // Fallback: plot precipitation chance (0-100%) when no amount data is available.
+            cachedGraphYMax = 100.0;
+            for(var i = 0; i < rawChance.size(); i++) {
+                var c = rawChance[i];
+                if(c < 0) { c = 0; }
+                if(c > 100) { c = 100; }
+                ret.add(c);
+            }
         }
         return ret;
     }
