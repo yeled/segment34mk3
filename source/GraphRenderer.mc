@@ -244,6 +244,13 @@ class GraphRenderer {
             var infoLast  = Time.Gregorian.info(new Time.Moment(_precipLastHourEpoch),  Time.FORMAT_SHORT);
             _cachedXLabelLeft  = formatXLabel(infoFirst.hour, infoFirst.min);
             _cachedXLabelRight = formatXLabel(infoLast.hour,  infoLast.min);
+            // Mark the right label with "+" when it falls on a different calendar day from
+            // the left, so a 24h-wide window (e.g. 3-hour-interval providers like OWM and
+            // some Garmin firmwares) doesn't read as "16:00 ... 13:00" with no day cue.
+            var sameDay = (infoFirst.year == infoLast.year)
+                       && (infoFirst.month == infoLast.month)
+                       && (infoFirst.day == infoLast.day);
+            if (!sameDay) { _cachedXLabelRight = _cachedXLabelRight + "+"; }
         } else if (_propGraphData >= 8) {
             var infoNow = Time.Gregorian.info(nowMoment, Time.FORMAT_SHORT);
             var target6 = nowMoment.subtract(new Time.Duration(6 * 86400));
@@ -479,10 +486,6 @@ class GraphRenderer {
 
         var nowEpoch = Time.now().value();
         var futureCutoff = nowEpoch - 3600;
-        // Cap the visible window so providers with 3-hour intervals (e.g. OWM free tier)
-        // don't fill 8 bars with a 24-hour span that wraps past midnight. Hourly providers
-        // are still bounded by the 8-entry cap below.
-        var maxFutureCutoff = nowEpoch + 12 * 3600;
 
         // Collect current+future entries, then sort by forecastTime ascending. Some providers
         // (and Garmin's native API on certain firmwares) hand back the hourly array in a
@@ -494,7 +497,7 @@ class GraphRenderer {
             var ftRaw = entry.get("forecastTime");
             if(ftRaw == null) { continue; }
             var ft = ftRaw as Number;
-            if(ft < futureCutoff || ft > maxFutureCutoff) { continue; }
+            if(ft < futureCutoff) { continue; }
             entries.add(entry);
         }
         if(entries.size() == 0) { return []; }
