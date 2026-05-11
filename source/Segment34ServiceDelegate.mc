@@ -17,6 +17,16 @@ class Segment34ServiceDelegate extends System.ServiceDelegate {
 
         if (weatherProvider != 1 && weatherProvider != 2 && weatherProvider != 3) { return; }
 
+        // Reschedule the next temporal event up-front so the loop keeps running even when
+        // the fetch never completes successfully — missing/invalid API key, no location
+        // available, network failure, server error, etc. Previously the next event was
+        // only scheduled from the success path of each provider's response handler, so a
+        // single failed cycle would kill the chain and require a settings change to
+        // restart it. Response handlers may overwrite this with the same interval —
+        // idempotent.
+        var refreshInterval = Application.Properties.getValue("owmRefreshInterval") as Number;
+        Background.registerForTemporalEvent(new Time.Duration(refreshInterval));
+
         // OWM and Tomorrow.io require API keys; Open-Meteo does not.
         var apiKey = "" as String;
         if (weatherProvider == 1) {
