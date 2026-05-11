@@ -1,6 +1,7 @@
 // Graph data fetching and rendering
 
 import Toybox.ActivityMonitor;
+import Toybox.Application;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
@@ -37,6 +38,10 @@ class GraphRenderer {
     hidden var _cachedXLabelEpochMin as Number = -1;
     hidden var _cachedXLabelLeft as String = "";
     hidden var _cachedXLabelRight as String = "";
+
+    // Time range of the current precipitation forecast window (used for X-axis labels).
+    hidden var _precipFirstHourEpoch as Number = 0;
+    hidden var _precipLastHourEpoch as Number = 0;
 
     function initialize() {}
 
@@ -224,7 +229,12 @@ class GraphRenderer {
         var epochMin = nowMoment.value() / 60;
         if (epochMin == _cachedXLabelEpochMin) { return; }
         _cachedXLabelEpochMin = epochMin;
-        if (_propGraphData >= 8) {
+        if (_propGraphData == 11) {
+            var infoFirst = Time.Gregorian.info(new Time.Moment(_precipFirstHourEpoch), Time.FORMAT_SHORT);
+            var infoLast  = Time.Gregorian.info(new Time.Moment(_precipLastHourEpoch),  Time.FORMAT_SHORT);
+            _cachedXLabelLeft  = formatXLabel(infoFirst.hour, infoFirst.min);
+            _cachedXLabelRight = formatXLabel(infoLast.hour,  infoLast.min);
+        } else if (_propGraphData >= 8) {
             var infoNow = Time.Gregorian.info(nowMoment, Time.FORMAT_SHORT);
             var target6 = nowMoment.subtract(new Time.Duration(6 * 86400));
             var info6 = Time.Gregorian.info(target6, Time.FORMAT_SHORT);
@@ -255,6 +265,10 @@ class GraphRenderer {
 
         if(dataSource == 8 or dataSource == 9 or dataSource == 10) {
             return getDailyDataArray(dataSource);
+        }
+
+        if(dataSource == 11) {
+            return getHourlyPrecipitationArray();
         }
 
         var twoHours = new Time.Duration(7200);
@@ -437,6 +451,60 @@ class GraphRenderer {
         if(dataSource == 9) { return todayInfo.steps != null ? todayInfo.steps : 0; }
         if(dataSource == 10) { return todayInfo.activeMinutesDay != null ? todayInfo.activeMinutesDay.total : 0; }
         return 0;
+    }
+
+    // Hourly precipitation forecast graph. Reads cached forecast from Application.Storage
+    // and plots up to 8 upcoming hourly slots. Y-axis is mm (rounded up). Empty hours
+    // (no precip) render as 1px stubs via the shared >= 8 daily-mode path in drawBarGraph.
+    hidden function getHourlyPrecipitationArray() as Array<Number> {
+        graphGoalLine = null;
+        cachedGraphData2 = null;
+        cachedGraphYMin = 0.0;
+        cachedGraphYMax = 0.0;
+
+        var hf = Application.Storage.getValue("hourly_forecast") as Array?;
+        if(hf == null || hf.size() == 0) { return []; }
+
+        var nowEpoch = Time.now().value();
+        var raw = [] as Array<Float>;
+        var maxAmount = 0.0f;
+        var firstEpoch = 0;
+        var lastEpoch = 0;
+        var maxEntries = 8;
+
+        for(var i = 0; i < hf.size() && raw.size() < maxEntries; i++) {
+            var entry = hf[i] as Dictionary;
+            var ftRaw = entry.get("forecastTime");
+            if(ftRaw == null) { continue; }
+            var ft = ftRaw as Number;
+            // Include the current hour and future slots; skip past hours.
+            if(ft < nowEpoch - 3600) { continue; }
+            var amt = entry.get("precipitationAmount");
+            var v = (amt != null) ? (amt as Float).toFloat() : 0.0f;
+            if(raw.size() == 0) { firstEpoch = ft; }
+            lastEpoch = ft;
+            raw.add(v);
+            if(v > maxAmount) { maxAmount = v; }
+        }
+
+        if(raw.size() == 0) { return []; }
+
+        _precipFirstHourEpoch = firstEpoch;
+        _precipLastHourEpoch = lastEpoch;
+        // Invalidate the X-label cache so the new time range is reflected immediately.
+        _cachedXLabelEpochMin = -1;
+
+        // Normalise so the tallest bar fills the graph. Use ceil(max) for axis label so a
+        // 0.5 mm peak still reads as "1" mm rather than truncating to "0".
+        var ceiledMax = Math.ceil(maxAmount).toFloat();
+        if(ceiledMax < 1.0f) { ceiledMax = 1.0f; }
+        cachedGraphYMax = ceiledMax;
+
+        var ret = [] as Array<Number>;
+        for(var i = 0; i < raw.size(); i++) {
+            ret.add(Math.round(raw[i] / ceiledMax * 100).toNumber());
+        }
+        return ret;
     }
 
 }
