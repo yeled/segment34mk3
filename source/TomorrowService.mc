@@ -14,8 +14,10 @@ class TomorrowService {
     function initialize() {}
 
     // Tomorrow.io v4: realtime endpoint for current conditions, forecast endpoint
-    // for hourly/daily. Default units are metric (C, m/s, mm/hr) which matches
-    // what storeWeatherData expects.
+    // for hourly. Default units are metric (C, m/s, mm/hr) which matches what
+    // storeWeatherData expects. Daily timestep is omitted to keep the forecast
+    // payload small enough to land reliably inside Garmin's background process
+    // budget; high/low are derived from the hourly entries instead.
     function fetchWeather(lat as Float, lon as Float, apiKey as String) as Void {
         _lat = lat;
         _lon = lon;
@@ -29,7 +31,7 @@ class TomorrowService {
         );
         Communications.makeWebRequest(
             "https://api.tomorrow.io/v4/weather/forecast",
-            { "location" => locStr, "apikey" => apiKey, "units" => "metric", "timesteps" => "1h,1d" },
+            { "location" => locStr, "apikey" => apiKey, "units" => "metric", "timesteps" => "1h" },
             { :method => Communications.HTTP_REQUEST_METHOD_GET,
               :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON },
             method(:onForecastResponse)
@@ -99,6 +101,10 @@ class TomorrowService {
         var hourly = timelines.get("hourly") as Array?;
         var hf_data = [] as Array<Dictionary>;
         var now = Time.now().value();
+        // Derive high/low from the hourly window since the daily timestep was dropped
+        // to keep the payload small. Covers the next 8 hours, not a full calendar day.
+        var dailyHigh = null as Number?;
+        var dailyLow  = null as Number?;
         if (hourly != null) {
             // Cap to ~8 hours like the other providers.
             var maxEntries = hourly.size() < 8 ? hourly.size() : 8;
@@ -113,7 +119,12 @@ class TomorrowService {
                 tmp["forecastTime"] = now + (i * 3600);
 
                 var temp = values.get("temperature");
-                if (temp != null) { tmp["temperature"] = (temp as Float).toNumber(); }
+                if (temp != null) {
+                    var tN = (temp as Float).toNumber();
+                    tmp["temperature"] = tN;
+                    if (dailyHigh == null || tN > (dailyHigh as Number)) { dailyHigh = tN; }
+                    if (dailyLow  == null || tN < (dailyLow  as Number)) { dailyLow  = tN; }
+                }
                 var pop = values.get("precipitationProbability");
                 if (pop != null) { tmp["precipitationChance"] = (pop as Float).toNumber(); }
                 var precip = values.get("precipitationIntensity");
@@ -142,24 +153,10 @@ class TomorrowService {
         // leaving the graph stuck on the previous fetch.
         Application.Storage.setValue("wx_last_update", Time.now().value());
 
-        // Daily block: today's high/low (index 0).
-        var daily = timelines.get("daily") as Array?;
-        var dailyHigh = null as Number?;
-        var dailyLow  = null as Number?;
-        if (daily != null && daily.size() > 0) {
-            var d0 = daily[0] as Dictionary;
-            var dValues = d0.get("values") as Dictionary?;
-            if (dValues != null) {
-                var tMax = dValues.get("temperatureMax");
-                var tMin = dValues.get("temperatureMin");
-                if (tMax != null) { dailyHigh = (tMax as Float).toNumber(); }
-                if (tMin != null) { dailyLow  = (tMin as Float).toNumber(); }
-            }
-        }
         if (dailyHigh != null) { Application.Storage.setValue("owm_forecast_high", dailyHigh); }
         if (dailyLow  != null) { Application.Storage.setValue("owm_forecast_low",  dailyLow); }
 
-        // Patch daily high/low into current_conditions if it already exists.
+        // Patch high/low into current_conditions if it already exists.
         var cc = Application.Storage.getValue("current_conditions") as Dictionary?;
         if (cc != null) {
             if (dailyHigh != null) { cc["highTemperature"] = dailyHigh as Number; }
