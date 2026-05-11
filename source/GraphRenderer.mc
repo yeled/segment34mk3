@@ -73,6 +73,14 @@ class GraphRenderer {
         _propIsMetricDistance = propIsMetricDistance;
     }
 
+    // Base fill colour for bars / lines / dots. Precipitation always renders blue;
+    // other sources use the theme's clock colour and may be overridden per-bar
+    // (e.g. stress).
+    hidden function getBarColor(themeColors as Array<Graphics.ColorType>) as Graphics.ColorType {
+        if(_propGraphData == 11) { return Graphics.COLOR_BLUE; }
+        return themeColors[clock];
+    }
+
     function drawGraph(dc as Graphics.Dc, data as Array<Number>?, data2 as Array<Number>?, x as Number, y as Number, h as Number, themeColors as Array<Graphics.ColorType>) as Void {
         if(data == null || data.size() == 0) { return; }
         var scale = 100.0 / h;
@@ -131,7 +139,7 @@ class GraphRenderer {
             dc.drawLine(graphLeft, goal_y, graphRight, goal_y);
         }
 
-        dc.setColor(themeColors[clock], Graphics.COLOR_TRANSPARENT);
+        dc.setColor(getBarColor(themeColors), Graphics.COLOR_TRANSPARENT);
         for(var i = 0; i < data.size(); i++) {
             if(data[i] == -1) { continue; } // gap (e.g. stress not measurable)
             if(_propGraphData == 7) {
@@ -142,7 +150,7 @@ class GraphRenderer {
                 // Zero value: draw a 1px stub
                 dc.setColor(themeColors[dateDim], Graphics.COLOR_TRANSPARENT);
                 dc.fillRectangle(bar_x, y + h - 1, bw, 1);
-                dc.setColor(themeColors[clock], Graphics.COLOR_TRANSPARENT);
+                dc.setColor(getBarColor(themeColors), Graphics.COLOR_TRANSPARENT);
                 continue;
             }
             var bar_height = Math.round(data[i] / scale);
@@ -190,7 +198,7 @@ class GraphRenderer {
         }
 
         // Draw line and optional dots
-        dc.setColor(themeColors[clock], Graphics.COLOR_TRANSPARENT);
+        dc.setColor(getBarColor(themeColors), Graphics.COLOR_TRANSPARENT);
         var prevX = -1;
         var prevY = -1;
         for(var i = 0; i < n; i++) {
@@ -205,11 +213,13 @@ class GraphRenderer {
             if(_propGraphStyle == 2) {
                 if(_propGraphData == 7) {
                     dc.setColor(getStressColor(data[i]), Graphics.COLOR_TRANSPARENT);
+                } else if(_propGraphData == 11) {
+                    dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
                 } else {
                     dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
                 }
                 dc.fillRectangle(ptX - 1, ptY - 1, 3, 3);
-                dc.setColor(themeColors[clock], Graphics.COLOR_TRANSPARENT);
+                dc.setColor(getBarColor(themeColors), Graphics.COLOR_TRANSPARENT);
             }
             prevX = ptX;
             prevY = ptY;
