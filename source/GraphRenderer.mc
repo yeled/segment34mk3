@@ -42,6 +42,7 @@ class GraphRenderer {
     // Time range of the current precipitation forecast window (used for X-axis labels).
     hidden var _precipFirstHourEpoch as Number = 0;
     hidden var _precipLastHourEpoch as Number = 0;
+    hidden var _precipCrossesDay as Boolean = false;
 
     function initialize() {}
 
@@ -128,7 +129,7 @@ class GraphRenderer {
                 dc.drawText(graphLeft - 2, y + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
             }
             var leftLabel = getGraphXLabel(true);
-            var rightLabel = getGraphXLabel(false);
+            var rightLabel = getRightXLabel(dc);
             dc.drawText(graphLeft, y + h, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
             dc.drawText(graphRight, y + h, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
         }
@@ -192,7 +193,7 @@ class GraphRenderer {
             dc.drawText(graphLeft - 2, y + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
 
             var leftLabel = getGraphXLabel(true);
-            var rightLabel = getGraphXLabel(false);
+            var rightLabel = getRightXLabel(dc);
             dc.drawText(graphLeft, y + h, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
             dc.drawText(graphRight, y + h, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
         }
@@ -234,6 +235,22 @@ class GraphRenderer {
         return isLeft ? _cachedXLabelLeft : _cachedXLabelRight;
     }
 
+    // Right X-axis label with a day-wrap suffix appended when the precipitation window
+    // crosses midnight. Prefers "+1d" and falls back to "+" on narrow screens where the
+    // longer suffix would collide with the left label.
+    hidden function getRightXLabel(dc as Graphics.Dc) as String {
+        refreshXLabels();
+        if(!(_propGraphData == 11 && _precipCrossesDay) || _fontLabel == null) {
+            return _cachedXLabelRight;
+        }
+        var fullSuffix = _cachedXLabelRight + "+1d";
+        var leftW = dc.getTextWidthInPixels(_cachedXLabelLeft, _fontLabel);
+        var fullW = dc.getTextWidthInPixels(fullSuffix, _fontLabel);
+        // Bars span ~_halfWidth * 2; leave a 2px gap between left and right labels.
+        if(leftW + fullW + 2 <= _halfWidth * 2) { return fullSuffix; }
+        return _cachedXLabelRight + "+";
+    }
+
     hidden function refreshXLabels() as Void {
         var nowMoment = Time.now();
         var epochMin = nowMoment.value() / 60;
@@ -244,13 +261,13 @@ class GraphRenderer {
             var infoLast  = Time.Gregorian.info(new Time.Moment(_precipLastHourEpoch),  Time.FORMAT_SHORT);
             _cachedXLabelLeft  = formatXLabel(infoFirst.hour, infoFirst.min);
             _cachedXLabelRight = formatXLabel(infoLast.hour,  infoLast.min);
-            // Mark the right label with "+" when it falls on a different calendar day from
-            // the left, so a 24h-wide window (e.g. 3-hour-interval providers like OWM and
-            // some Garmin firmwares) doesn't read as "16:00 ... 13:00" with no day cue.
-            var sameDay = (infoFirst.year == infoLast.year)
-                       && (infoFirst.month == infoLast.month)
-                       && (infoFirst.day == infoLast.day);
-            if (!sameDay) { _cachedXLabelRight = _cachedXLabelRight + "+"; }
+            // Track day wrap so the draw path can append a day-suffix to the right label.
+            // Window can span up to ~24h with 3-hour-interval providers (OWM free tier and
+            // some Garmin firmwares), so without a cue "16:00 ... 13:00" reads as a
+            // backwards range.
+            _precipCrossesDay = !((infoFirst.year == infoLast.year)
+                                && (infoFirst.month == infoLast.month)
+                                && (infoFirst.day == infoLast.day));
         } else if (_propGraphData >= 8) {
             var infoNow = Time.Gregorian.info(nowMoment, Time.FORMAT_SHORT);
             var target6 = nowMoment.subtract(new Time.Duration(6 * 86400));
