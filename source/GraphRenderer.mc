@@ -468,37 +468,56 @@ class GraphRenderer {
         if(hf == null || hf.size() == 0) { return []; }
 
         var nowEpoch = Time.now().value();
+        var futureCutoff = nowEpoch - 3600;
+
+        // Collect current+future entries, then sort by forecastTime ascending. Some providers
+        // (and Garmin's native API on certain firmwares) hand back the hourly array in a
+        // non-chronological order, so the X-axis labels and bar positions can only be
+        // trusted after an explicit sort.
+        var entries = [] as Array<Dictionary>;
+        for(var i = 0; i < hf.size(); i++) {
+            var entry = hf[i] as Dictionary;
+            var ftRaw = entry.get("forecastTime");
+            if(ftRaw == null) { continue; }
+            if((ftRaw as Number) < futureCutoff) { continue; }
+            entries.add(entry);
+        }
+        if(entries.size() == 0) { return []; }
+
+        // Insertion sort by forecastTime ascending — N is small (<=~48), so O(N^2) is fine.
+        for(var i = 1; i < entries.size(); i++) {
+            var key = entries[i];
+            var keyT = (key.get("forecastTime") as Number);
+            var j = i - 1;
+            while(j >= 0 && (entries[j].get("forecastTime") as Number) > keyT) {
+                entries[j + 1] = entries[j];
+                j--;
+            }
+            entries[j + 1] = key;
+        }
+
+        var maxEntries = 8;
+        var count = entries.size() < maxEntries ? entries.size() : maxEntries;
+
         var rawAmount = [] as Array<Float>;
         var rawChance = [] as Array<Number>;
         var maxAmount = 0.0f;
         var hasAnyAmount = false;
-        var firstEpoch = 0;
-        var lastEpoch = 0;
-        var maxEntries = 8;
 
-        for(var i = 0; i < hf.size() && rawAmount.size() < maxEntries; i++) {
-            var entry = hf[i] as Dictionary;
-            var ftRaw = entry.get("forecastTime");
-            if(ftRaw == null) { continue; }
-            var ft = ftRaw as Number;
-            // Include the current hour and future slots; skip past hours.
-            if(ft < nowEpoch - 3600) { continue; }
+        for(var i = 0; i < count; i++) {
+            var entry = entries[i];
             var amt = entry.get("precipitationAmount");
             var amtF = (amt != null) ? (amt as Float).toFloat() : 0.0f;
             if(amtF > 0.0f) { hasAnyAmount = true; }
             var ch = entry.get("precipitationChance");
             var chN = (ch != null) ? (ch as Number) : 0;
-            if(rawAmount.size() == 0) { firstEpoch = ft; }
-            lastEpoch = ft;
             rawAmount.add(amtF);
             rawChance.add(chN);
             if(amtF > maxAmount) { maxAmount = amtF; }
         }
 
-        if(rawAmount.size() == 0) { return []; }
-
-        _precipFirstHourEpoch = firstEpoch;
-        _precipLastHourEpoch = lastEpoch;
+        _precipFirstHourEpoch = entries[0].get("forecastTime") as Number;
+        _precipLastHourEpoch  = entries[count - 1].get("forecastTime") as Number;
         // Invalidate the X-label cache so the new time range is reflected immediately.
         _cachedXLabelEpochMin = -1;
 
