@@ -72,6 +72,9 @@ class Segment34View extends WatchUi.WatchFace {
     hidden var cachedGraphData as Array<Number>? = null;
     hidden var cachedGraphDataSource as Number = -1;
     hidden var lastGraphMinute as Number = -1;
+    // Last seen wx_last_update timestamp when the graph cache was populated; used to
+    // force-refresh the precipitation graph as soon as a new weather fetch lands.
+    hidden var cachedGraphWxUpdate as Number? = null;
 
     hidden var fontMoon as WatchUi.FontResource?;
     hidden var fontIcons as WatchUi.FontResource;
@@ -944,12 +947,18 @@ class Segment34View extends WatchUi.WatchFace {
             var currentMinute = now.hour * 60 + now.min;
             // Only re-fetch sensor history when the minute changes or the data source changed.
             // SensorHistory updates at most once per minute, so more frequent reads are wasted.
+            // For the precipitation graph (source 11) also invalidate when wx_last_update
+            // advances, so a fresh background fetch shows up at the next draw instead of
+            // waiting for the minute boundary.
+            var wxUpdate = (propGraphData == 11) ? (Application.Storage.getValue("wx_last_update") as Number?) : null;
             if(cachedGraphData == null
                     or currentMinute != lastGraphMinute
-                    or propGraphData != cachedGraphDataSource) {
+                    or propGraphData != cachedGraphDataSource
+                    or (propGraphData == 11 and wxUpdate != cachedGraphWxUpdate)) {
                 cachedGraphData = graphRenderer.getDataArrayByType(propGraphData);
                 cachedGraphDataSource = propGraphData;
                 lastGraphMinute = currentMinute;
+                cachedGraphWxUpdate = wxUpdate;
             }
             values[:dataGraph1] = cachedGraphData;
             values[:dataGraph1b] = (propGraphData == 10) ? graphRenderer.cachedGraphData2 : null;
