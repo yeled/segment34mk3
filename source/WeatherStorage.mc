@@ -15,6 +15,15 @@ class WeatherStorage {
 
     function initialize() {}
 
+    // Drops the in-memory cache so the next store() always rewrites Application.Storage.
+    // Called from onSettingsChanged when the cached current_conditions / hourly_forecast
+    // values have been deleted — without this, _lastCcHash would short-circuit the next
+    // write and leave the storage empty.
+    function resetCache() as Void {
+        _lastHfTime = null;
+        _lastCcHash = null;
+    }
+
     function store() as Void {
         var now = Time.now().value();
         var sysStats = System.getSystemStats();

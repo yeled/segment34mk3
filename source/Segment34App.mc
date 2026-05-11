@@ -35,10 +35,16 @@ class Segment34App extends Application.AppBase {
 
     function onSettingsChanged() as Void {
         // Reset weather service state so the next temporal event fetches immediately.
+        // Also drop cached observations/forecast — provider, API key, location override,
+        // or refresh interval may have changed, and stale data (including the cached
+        // observation coordinate used by locationChangedSignificantly) must not leak
+        // across the switch.
         Application.Storage.deleteValue("wx_last_update");
         Application.Storage.deleteValue("wx_error");
         Application.Storage.deleteValue("owm_forecast_high");
         Application.Storage.deleteValue("owm_forecast_low");
+        Application.Storage.deleteValue("current_conditions");
+        Application.Storage.deleteValue("hourly_forecast");
         updateTemporalEvent();
         mView.onSettingsChanged();
         WatchUi.requestUpdate();
