@@ -294,6 +294,7 @@
                 <listEntry value="8">@Strings.settings_daily_distance_7d</listEntry>
                 <listEntry value="9">@Strings.settings_daily_steps_7d</listEntry>
                 <listEntry value="10">@Strings.settings_daily_active_minutes_7d</listEntry>
+                <listEntry value="11">@Strings.settings_precipitation_forecast</listEntry>
             </settingConfig>
     </setting>
 
