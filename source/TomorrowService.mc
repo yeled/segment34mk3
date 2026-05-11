@@ -86,7 +86,6 @@ class TomorrowService {
         cc_data["observationTime"] = now;
         cc_data["timestamp"] = now;
         Application.Storage.setValue("current_conditions", cc_data);
-        Application.Storage.setValue("wx_last_update", now);
         var interval = Application.Properties.getValue("owmRefreshInterval") as Number;
         Background.registerForTemporalEvent(new Time.Duration(interval));
     }
@@ -136,6 +135,12 @@ class TomorrowService {
             }
         }
         Application.Storage.setValue("hourly_forecast", hf_data);
+        // wx_last_update tracks the freshness of the forecast (what the precipitation
+        // graph reads), not the current observation. If onCurrentResponse advanced this
+        // alone and onForecastResponse failed, the rate-limit in
+        // Segment34ServiceDelegate would skip retries for up to `owmRefreshInterval`,
+        // leaving the graph stuck on the previous fetch.
+        Application.Storage.setValue("wx_last_update", Time.now().value());
 
         // Daily block: today's high/low (index 0).
         var daily = timelines.get("daily") as Array?;
