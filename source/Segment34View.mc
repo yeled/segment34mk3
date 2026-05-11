@@ -871,11 +871,6 @@ class Segment34View extends WatchUi.WatchFace {
         reloadSettings();
         lastUpdate = null;
         lastSlowUpdate = null;
-        // App.onSettingsChanged clears the cached current_conditions / hourly_forecast
-        // in Application.Storage; reset the in-memory hash so the next store() writes
-        // fresh data instead of short-circuiting.
-        weatherStorage.resetCache();
-        cachedGraphWxUpdate = null;
         WatchUi.requestUpdate();
     }
 
