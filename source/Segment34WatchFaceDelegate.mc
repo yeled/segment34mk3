@@ -65,6 +65,16 @@ class Segment34Delegate extends WatchUi.WatchFaceDelegate {
             WatchUi.requestUpdate();
         }
 
+        if(cID == -4) { // Open the on-watch complication picker
+            try {
+                WatchUi.pushView(
+                    new ComplicationRootMenu(),
+                    new ComplicationRootDelegate(view),
+                    WatchUi.SLIDE_LEFT
+                );
+            } catch (e) {}
+        }
+
         if(cID != null and cID > 0) {
             try {
                 Complications.exitTo(new Id(cID));
