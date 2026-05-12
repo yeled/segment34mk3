@@ -80,4 +80,6 @@
     <property id="owmLocationOverride" type="string"></property>
     <property id="owmRefreshInterval" type="number">7200</property>
     <property id="experimentalBattOpt" type="boolean">false</property>
+    <property id="complication1Label" type="string"></property>
+    <property id="complication2Label" type="string"></property>
 </properties>

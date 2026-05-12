@@ -549,6 +549,8 @@
             <listEntry value="53">@Strings.settings_cgm_glucose_trend</listEntry>
             <listEntry value="54">@Strings.settings_cgm_age</listEntry>
             <listEntry value="68">@Strings.settings_daily_counter</listEntry>
+            <listEntry value="69">@Strings.settings_complication_1</listEntry>
+            <listEntry value="70">@Strings.settings_complication_2</listEntry>
         </settingConfig>
     </setting>
 
@@ -614,6 +616,8 @@
             <listEntry value="53">@Strings.settings_cgm_glucose_trend</listEntry>
             <listEntry value="54">@Strings.settings_cgm_age</listEntry>
             <listEntry value="68">@Strings.settings_daily_counter</listEntry>
+            <listEntry value="69">@Strings.settings_complication_1</listEntry>
+            <listEntry value="70">@Strings.settings_complication_2</listEntry>
         </settingConfig>
     </setting>
 
@@ -679,6 +683,8 @@
             <listEntry value="53">@Strings.settings_cgm_glucose_trend</listEntry>
             <listEntry value="54">@Strings.settings_cgm_age</listEntry>
             <listEntry value="68">@Strings.settings_daily_counter</listEntry>
+            <listEntry value="69">@Strings.settings_complication_1</listEntry>
+            <listEntry value="70">@Strings.settings_complication_2</listEntry>
         </settingConfig>
     </setting>
 
@@ -744,6 +750,8 @@
             <listEntry value="53">@Strings.settings_cgm_glucose_trend</listEntry>
             <listEntry value="54">@Strings.settings_cgm_age</listEntry>
             <listEntry value="68">@Strings.settings_daily_counter</listEntry>
+            <listEntry value="69">@Strings.settings_complication_1</listEntry>
+            <listEntry value="70">@Strings.settings_complication_2</listEntry>
         </settingConfig>
     </setting>
 
@@ -783,6 +791,8 @@
             <listEntry value="45">@Strings.settings_next_calendar_event_time</listEntry>
             <listEntry value="53">@Strings.settings_cgm_glucose_trend</listEntry>
             <listEntry value="30">@Strings.settings_battery_percentage</listEntry>
+            <listEntry value="69">@Strings.settings_complication_1</listEntry>
+            <listEntry value="70">@Strings.settings_complication_2</listEntry>
         </settingConfig>
     </setting>
 
@@ -822,6 +832,8 @@
             <listEntry value="45">@Strings.settings_next_calendar_event_time</listEntry>
             <listEntry value="53">@Strings.settings_cgm_glucose_trend</listEntry>
             <listEntry value="30">@Strings.settings_battery_percentage</listEntry>
+            <listEntry value="69">@Strings.settings_complication_1</listEntry>
+            <listEntry value="70">@Strings.settings_complication_2</listEntry>
         </settingConfig>
     </setting>
 
@@ -1050,6 +1062,7 @@
             <listEntry value="37">@Strings.settings_solar_input</listEntry>
             <listEntry value="-2">@Strings.settings_increase_counter</listEntry>
             <listEntry value="-3">@Strings.settings_decrease_counter</listEntry>
+            <listEntry value="-4">@Strings.settings_configure_complications</listEntry>
         </settingConfig>
     </setting>
 
@@ -1079,6 +1092,7 @@
             <listEntry value="37">@Strings.settings_solar_input</listEntry>
             <listEntry value="-2">@Strings.settings_increase_counter</listEntry>
             <listEntry value="-3">@Strings.settings_decrease_counter</listEntry>
+            <listEntry value="-4">@Strings.settings_configure_complications</listEntry>
         </settingConfig>
     </setting>
 
@@ -1108,6 +1122,7 @@
             <listEntry value="37">@Strings.settings_solar_input</listEntry>
             <listEntry value="-2">@Strings.settings_increase_counter</listEntry>
             <listEntry value="-3">@Strings.settings_decrease_counter</listEntry>
+            <listEntry value="-4">@Strings.settings_configure_complications</listEntry>
         </settingConfig>
     </setting>
 
@@ -1137,6 +1152,7 @@
             <listEntry value="37">@Strings.settings_solar_input</listEntry>
             <listEntry value="-2">@Strings.settings_increase_counter</listEntry>
             <listEntry value="-3">@Strings.settings_decrease_counter</listEntry>
+            <listEntry value="-4">@Strings.settings_configure_complications</listEntry>
         </settingConfig>
     </setting>
 
@@ -1166,6 +1182,7 @@
             <listEntry value="37">@Strings.settings_solar_input</listEntry>
             <listEntry value="-2">@Strings.settings_increase_counter</listEntry>
             <listEntry value="-3">@Strings.settings_decrease_counter</listEntry>
+            <listEntry value="-4">@Strings.settings_configure_complications</listEntry>
         </settingConfig>
     </setting>
 
@@ -1388,6 +1405,14 @@
 
     <setting propertyKey="@Properties.experimentalBattOpt" title="@Strings.settings_experimental_batt_opt">
         <settingConfig type="boolean" />
+    </setting>
+
+    <setting propertyKey="@Properties.complication1Label" title="@Strings.settings_complication_1_label">
+        <settingConfig type="alphaNumeric" />
+    </setting>
+
+    <setting propertyKey="@Properties.complication2Label" title="@Strings.settings_complication_2_label">
+        <settingConfig type="alphaNumeric" />
     </setting>
 
 </settings>

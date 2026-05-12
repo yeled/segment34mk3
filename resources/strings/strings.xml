@@ -503,4 +503,14 @@
     <string id="settings_every_hour" scope="settings">Every hour</string>
     <string id="settings_every_2_hours" scope="settings">Every 2 hours</string>
     <string id="settings_experimental_batt_opt" scope="settings">Experimental battery optimization</string>
+    <string id="settings_complication_1" scope="settings">Custom Complication 1</string>
+    <string id="settings_complication_2" scope="settings">Custom Complication 2</string>
+    <string id="settings_complication_1_label" scope="settings">Custom Complication 1 — label name (set via the on-watch picker, or matches the complication's name as shown in the Garmin complications picker)</string>
+    <string id="settings_complication_2_label" scope="settings">Custom Complication 2 — label name</string>
+    <string id="settings_configure_complications" scope="settings">Configure custom complications</string>
+    <string id="menu_title_complications">Complications</string>
+    <string id="menu_title_choose_complication">Choose Complication</string>
+    <string id="menu_item_none">(none)</string>
+    <string id="menu_item_slot_1">Custom 1</string>
+    <string id="menu_item_slot_2">Custom 2</string>
 </strings>

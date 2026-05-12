@@ -28,6 +28,8 @@ class ValueResolver {
     hidden var _propTzOffset2 as Number = 0;
     hidden var _propTzName1 as String = "";
     hidden var _propTzName2 as String = "";
+    hidden var _propComplication1Label as String = "";
+    hidden var _propComplication2Label as String = "";
     hidden var _propDateFormat as Number = 0;
     hidden var _propDateCustomFormat as String = "DDD, DD MMMM";
     hidden var _propWeekOffset as Number = 0;
@@ -90,7 +92,9 @@ class ValueResolver {
         propLeftValueShows as Number,
         propMiddleValueShows as Number,
         propRightValueShows as Number,
-        propFourthValueShows as Number
+        propFourthValueShows as Number,
+        propComplication1Label as String,
+        propComplication2Label as String
     ) as Void {
         _propIs24H = propIs24H;
         _propHourFormat = propHourFormat;
@@ -114,6 +118,9 @@ class ValueResolver {
         _propMiddleValueShows = propMiddleValueShows;
         _propRightValueShows = propRightValueShows;
         _propFourthValueShows = propFourthValueShows;
+        _propComplication1Label = propComplication1Label;
+        _propComplication2Label = propComplication2Label;
+        _dataHelper.setUserComplicationLabels(propComplication1Label, propComplication2Label);
     }
 
     // Update weather-related runtime data. Call once at the start of each display cycle.
@@ -220,6 +227,8 @@ class ValueResolver {
             case 63:
             case 64: return _weatherHelper.getCivilTwilightFormatted(complicationType, width);
             case 68: return _dataHelper.getDailyCounterFormatted();
+            case 69: return _dataHelper.getUserComplicationValue(0, width);
+            case 70: return _dataHelper.getUserComplicationValue(1, width);
         }
         return "";
     }
@@ -267,6 +276,8 @@ class ValueResolver {
         // labelSize 1 = short, 2 = mid
         if(complicationType == 15) { return _propTzName1.toUpper() + ":"; }
         if(complicationType == 37) { return _propTzName2.toUpper() + ":"; }
+        if(complicationType == 69) { return _propComplication1Label.toUpper(); }
+        if(complicationType == 70) { return _propComplication2Label.toUpper(); }
         switch(complicationType) {
             case 0: return formatLabel(Rez.Strings.LABEL_WMIN_1, Rez.Strings.LABEL_WMIN_2, labelSize);
             case 62: return formatLabel(Rez.Strings.LABEL_WHRS_1, Rez.Strings.LABEL_WHRS_2, labelSize);
