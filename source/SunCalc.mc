@@ -4,33 +4,60 @@ import Toybox.Lang;
 import Toybox.Time;
 import Toybox.Weather;
 
+function getNextEvent(todayFirstEvent as Time.Moment?, todaySecondEvent as Time.Moment?, tomorrowFirstEvent as Time.Moment?, tomorrowSecondEvent as Time.Moment?, now as Time.Moment) as Lang.Array {
+    if (todayFirstEvent == null || todaySecondEvent == null || tomorrowFirstEvent == null || tomorrowSecondEvent == null) {
+        return [];
+    }
+
+    var first = todayFirstEvent as Time.Moment;
+    if (first.lessThan(now)) {
+        first = tomorrowFirstEvent as Time.Moment;
+    }
+
+    var second = todaySecondEvent as Time.Moment;
+    if (second.lessThan(now)) {
+        second = tomorrowSecondEvent as Time.Moment;
+    }
+
+    if (first.lessThan(second)) {
+        return [first, true];
+    }
+    return [second, false];
+}
+
 function getNextSunEvent(weatherCondition as StoredWeather?) as Lang.Array {
     var now = Time.now();
     if (weatherCondition != null) {
         var loc = weatherCondition.observationLocationPosition;
         if (loc != null) {
-            var nextSunEvent = null;
+            var tomorrow = Time.today().add(new Time.Duration(86401));
             var sunrise = Weather.getSunrise(loc, now);
             var sunset = Weather.getSunset(loc, now);
-            var isNight = false;
+            var tomorrowSunrise = Weather.getSunrise(loc, tomorrow);
+            var tomorrowSunset = Weather.getSunset(loc, tomorrow);
+            return getNextEvent(sunrise, sunset, tomorrowSunrise, tomorrowSunset, now);
+        }
+    }
+    return [];
+}
 
-            if ((sunrise != null) && (sunset != null)) {
-                if (sunrise.lessThan(now)) {
-                    //if sunrise was already, take tomorrows
-                    sunrise = Weather.getSunrise(loc, Time.today().add(new Time.Duration(86401)));
+function getNextCivilTwilightEvent(weatherCondition as StoredWeather?) as Lang.Array {
+    var now = Time.now();
+    if (weatherCondition != null) {
+        var loc = weatherCondition.observationLocationPosition;
+        if (loc != null) {
+            var tomorrow = Time.today().add(new Time.Duration(86401));
+            var sunrise = Weather.getSunrise(loc, now);
+            var sunset = Weather.getSunset(loc, now);
+            var tomorrowSunrise = Weather.getSunrise(loc, tomorrow);
+            var tomorrowSunset = Weather.getSunset(loc, tomorrow);
+            if (sunrise != null && sunset != null && tomorrowSunrise != null && tomorrowSunset != null) {
+                var latDeg = loc.toDegrees()[0];
+                var twilight = getCivilTwilight(latDeg as Double, sunrise, sunset);
+                var tomorrowTwilight = getCivilTwilight(latDeg as Double, tomorrowSunrise, tomorrowSunset);
+                if (twilight != null && tomorrowTwilight != null) {
+                    return getNextEvent(twilight[0], twilight[1], tomorrowTwilight[0], tomorrowTwilight[1], now);
                 }
-                if (sunset.lessThan(now)) {
-                    //if sunset was already, take tomorrows
-                    sunset = Weather.getSunset(loc, Time.today().add(new Time.Duration(86401)));
-                }
-                if (sunrise.lessThan(sunset)) {
-                    nextSunEvent = sunrise;
-                    isNight = true;
-                } else {
-                    nextSunEvent = sunset;
-                    isNight = false;
-                }
-                return [nextSunEvent, isNight];
             }
         }
     }

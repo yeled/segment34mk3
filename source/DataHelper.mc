@@ -91,7 +91,7 @@ class DataHelper {
 
     hidden function getFloorGoalProgress() as Number? {
         var info = ActivityMonitor.getInfo();
-        if(info.floorsClimbed != null and info.floorsClimbedGoal != null) {
+        if((info has :floorsClimbed) and info.floorsClimbed != null and info.floorsClimbedGoal != null) {
             return goalPercent(info.floorsClimbed, info.floorsClimbedGoal);
         }
         return null;
@@ -561,13 +561,13 @@ class DataHelper {
 
     function getFloorsClimbedFormatted() as String {
         var info = ActivityMonitor.getInfo();
-        if (info.floorsClimbed != null) { return info.floorsClimbed.format("%d"); }
+        if ((info has :floorsClimbed) && info.floorsClimbed != null) { return info.floorsClimbed.format("%d"); }
         return "";
     }
 
     function getMetersClimbedFormatted() as String {
         var info = ActivityMonitor.getInfo();
-        if (info.metersClimbed != null) { return info.metersClimbed.format("%d"); }
+        if ((info has :metersClimbed) && info.metersClimbed != null) { return info.metersClimbed.format("%d"); }
         return "";
     }
 

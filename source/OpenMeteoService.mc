@@ -35,7 +35,7 @@ class OpenMeteoService {
     }
 
     function onResponse(responseCode as Number, data as Dictionary?) as Void {
-        //System.println(["OM onResponse", responseCode]);
+        System.println(["OM onResponse", responseCode]);
         if (responseCode >= 400 && responseCode < 500) {
             Application.Storage.setValue("wx_error", "OM: ERROR " + responseCode.toString());
             return;
@@ -51,6 +51,7 @@ class OpenMeteoService {
 
         // Current conditions block.
         var current = data.get("current") as Dictionary?;
+        System.println(["OM current block", current]);
         if (current != null) {
             var temp = current.get("temperature_2m");
             if (temp != null) { cc_data["temperature"] = (temp as Float).toNumber(); }
@@ -63,6 +64,7 @@ class OpenMeteoService {
             var windDir = current.get("wind_direction_10m");
             if (windDir != null) { cc_data["windBearing"] = (windDir as Float).toNumber(); }
             var windGust = current.get("wind_gusts_10m");
+            System.println(["OM wind_gusts_10m raw", windGust]);
             if (windGust != null) { cc_data["windGust"] = (windGust as Float).toFloat(); }
             var precip = current.get("precipitation");
             if (precip != null && (precip as Float) > 0.0f) {
@@ -133,6 +135,7 @@ class OpenMeteoService {
 
         cc_data["observationLocationPosition"] = [_lat, _lon];
         cc_data["timestamp"] = now;
+        System.println(["OM cc_data windGust stored", cc_data.get("windGust")]);
         Application.Storage.setValue("current_conditions", cc_data);
         Application.Storage.setValue("hourly_forecast", hf_data);
         Application.Storage.setValue("wx_last_update", now);

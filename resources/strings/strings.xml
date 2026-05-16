@@ -166,6 +166,8 @@
     <string id="LABEL_PRECIP_1">PRECIP</string>
     <string id="LABEL_NEXTSUN_1">SUN</string>
     <string id="LABEL_NEXTSUN_2">NEXT SUN</string>
+    <string id="LABEL_NEXTTWI_1">TWI</string>
+    <string id="LABEL_NEXTTWI_2">NEXT TWI</string>
     <string id="LABEL_NEXTCAL_1">CAL</string>
     <string id="LABEL_NEXTCAL_2">NEXT CAL</string>
     <string id="LABEL_OX_1">OX</string>
@@ -285,6 +287,7 @@
     <string id="settings_sunrise_time" scope="settings">Sunrise time</string>
     <string id="settings_sunset_time" scope="settings">Sunset time</string>
     <string id="settings_next_sun_event" scope="settings">Next sun event (sunset/sunrise) time</string>
+    <string id="settings_next_dawn_dusk_event" scope="settings">Next dawn/dusk event (civil dawn/dusk) time</string>
     <string id="settings_civil_dawn" scope="settings">Civil dawn time</string>
     <string id="settings_civil_dusk" scope="settings">Civil dusk time</string>
     <string id="settings_hrs_next_sun_event" scope="settings">Hours to next sun event (sunset/sunrise)</string>
@@ -316,12 +319,13 @@
     <string id="settings_graph_shows" scope="settings">Graph shows (must be enabled in Top Part shows)</string>
     <string id="settings_graph_size" scope="settings">Graph size</string>
     <string id="settings_graph_small" scope="settings">Small (default)</string>
-    <string id="settings_graph_large" scope="settings">Large</string>
+    <string id="settings_graph_large" scope="settings">Large (labels may cut off)</string>
     <string id="settings_graph_style" scope="settings">Graph style</string>
     <string id="settings_graph_style_bars" scope="settings">Bars</string>
     <string id="settings_graph_style_line" scope="settings">Line</string>
     <string id="settings_graph_style_dots" scope="settings">Line + dots</string>
-    <string id="settings_graph_axis_labels" scope="settings">Show axis labels</string>
+    <string id="settings_graph_x_axis_labels" scope="settings">Show X axis labels</string>
+    <string id="settings_graph_y_axis_labels" scope="settings">Show Y axis labels</string>
     <string id="settings_body_battery_history" scope="settings">Body battery history</string>
     <string id="settings_elevation_history" scope="settings">Elevation history</string>
     <string id="settings_heart_rate_history" scope="settings">Heart rate history</string>
@@ -333,6 +337,7 @@
     <string id="settings_daily_distance_7d" scope="settings">Daily distance (7 days)</string>
     <string id="settings_daily_steps_7d" scope="settings">Daily steps (7 days)</string>
     <string id="settings_daily_active_minutes_7d" scope="settings">Daily active minutes (7 days)</string>
+    <string id="settings_precipitation_forecast" scope="settings">Precipitation forecast (hourly)</string>
     <string id="settings_small_font_variant" scope="settings">Small dot matrix font variant:</string>
     <string id="settings_bottom_font_variant" scope="settings">Bottom fields font variant:</string>
     <string id="settings_dots" scope="settings">Dots</string>
@@ -502,5 +507,4 @@
     <string id="settings_every_30_min" scope="settings">Every 30 min</string>
     <string id="settings_every_hour" scope="settings">Every hour</string>
     <string id="settings_every_2_hours" scope="settings">Every 2 hours</string>
-    <string id="settings_experimental_batt_opt" scope="settings">Experimental battery optimization</string>
 </strings>

@@ -166,6 +166,8 @@
     <string id="LABEL_PRECIP_1">PRECIP</string>
     <string id="LABEL_NEXTSUN_1">SOLE</string>
     <string id="LABEL_NEXTSUN_2">PROX SOLE</string>
+    <string id="LABEL_NEXTTWI_1">ALB/CRE</string>
+    <string id="LABEL_NEXTTWI_2">PROX ALB/CRE</string>
     <string id="LABEL_NEXTCAL_1">CAL</string>
     <string id="LABEL_NEXTCAL_2">PROX CAL</string>
     <string id="LABEL_OX_1">OSS</string>
@@ -267,6 +269,7 @@
     <string id="settings_sunrise_time" scope="settings">Orario alba</string>
     <string id="settings_sunset_time" scope="settings">Orario tramonto</string>
     <string id="settings_next_sun_event" scope="settings">Orario prossimo evento solare (alba/tramonto)</string>
+    <string id="settings_next_dawn_dusk_event" scope="settings">Prossimo evento alba/crepuscolo civile</string>
     <string id="settings_hrs_next_sun_event" scope="settings">Ore al prossimo evento solare (alba/tramonto)</string>
     <string id="settings_resting_heart_rate" scope="settings">Frequenza cardiaca a riposo</string>
     <string id="settings_alternative_timezone_1" scope="settings">Fuso orario alternativo 1</string>
@@ -483,12 +486,13 @@
     <string id="settings_graph_shows" scope="settings">Il grafico mostra (deve essere abilitato in La parte superiore mostra)</string>
     <string id="settings_graph_size" scope="settings">Dimensione grafico</string>
     <string id="settings_graph_small" scope="settings">Piccolo (predefinito)</string>
-    <string id="settings_graph_large" scope="settings">Grande</string>
+    <string id="settings_graph_large" scope="settings">Grande (etichette potrebbero tagliarsi)</string>
     <string id="settings_graph_style" scope="settings">Stile grafico</string>
     <string id="settings_graph_style_bars" scope="settings">Barre</string>
     <string id="settings_graph_style_line" scope="settings">Linea</string>
     <string id="settings_graph_style_dots" scope="settings">Linea + punti</string>
-    <string id="settings_graph_axis_labels" scope="settings">Mostra etichette assi</string>
+    <string id="settings_graph_x_axis_labels" scope="settings">Mostra etichette asse X</string>
+    <string id="settings_graph_y_axis_labels" scope="settings">Mostra etichette asse Y</string>
     <string id="settings_bottom_font_variant" scope="settings">Variante font campi inferiori:</string>
     <string id="settings_auto" scope="settings">Auto - AM/PM per l'orario 12h</string>
     <string id="settings_ampm" scope="settings">Nessun separatore, mostra AM/PM dopo</string>
@@ -517,5 +521,4 @@
     <string id="settings_daily_counter" scope="settings">Contatore (reset giornaliero, tieni premuto per aumentare)</string>
     <string id="settings_increase_counter" scope="settings">Aumenta contatore</string>
     <string id="settings_decrease_counter" scope="settings">Diminuisci contatore</string>
-    <string id="settings_experimental_batt_opt" scope="settings">Experimental battery optimization</string>
 </strings>

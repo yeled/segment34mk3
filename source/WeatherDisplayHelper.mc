@@ -228,6 +228,7 @@ class WeatherDisplayHelper {
     // --- Formatted value getters for ValueResolver switch ---
 
     function getSensorTemperatureFormatted() as String {
+        if (!(SensorHistory has :getTemperatureHistory)) { return ""; }
         var tempIterator = SensorHistory.getTemperatureHistory({:period => 1});
         if (tempIterator != null) {
             var temp = tempIterator.next();
@@ -274,6 +275,14 @@ class WeatherDisplayHelper {
         var nextSunEventArray = getNextSunEvent(_w);
         if (nextSunEventArray != null && nextSunEventArray.size() == 2) {
             return formatSunTime(nextSunEventArray[0], width, _is24H, _hourFormat);
+        }
+        return "";
+    }
+
+    function getNextCivilTwilightEventFormatted(width as Number) as String {
+        var nextCivilTwilightEventArray = getNextCivilTwilightEvent(_w);
+        if (nextCivilTwilightEventArray != null && nextCivilTwilightEventArray.size() == 2) {
+            return formatSunTime(nextCivilTwilightEventArray[0], width, _is24H, _hourFormat);
         }
         return "";
     }

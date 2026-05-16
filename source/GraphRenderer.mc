@@ -1,6 +1,7 @@
 // Graph data fetching and rendering
 
 import Toybox.ActivityMonitor;
+import Toybox.Application;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
@@ -23,7 +24,9 @@ class GraphRenderer {
     // Props (set via configure())
     hidden var _propGraphData as Number = 0;
     hidden var _propGraphStyle as Number = 0;
-    hidden var _propGraphAxisLabels as Boolean = false;
+    hidden var _propGraphXAxisLabels as Boolean = false;
+    hidden var _propGraphYAxisLabels as Boolean = false;
+    hidden var _xLabelYOffset as Number = 0;
     hidden var _propIs24H as Boolean = false;
     hidden var _propIsMetricDistance as Boolean = true;
 
@@ -38,6 +41,10 @@ class GraphRenderer {
     hidden var _cachedXLabelLeft as String = "";
     hidden var _cachedXLabelRight as String = "";
 
+    // Time range of the current precipitation forecast window (used for X-axis labels).
+    hidden var _precipFirstHourEpoch as Number = 0;
+    hidden var _precipLastHourEpoch as Number = 0;
+
     function initialize() {}
 
     function configure(
@@ -50,7 +57,9 @@ class GraphRenderer {
         labelHeight as Number,
         propGraphData as Number,
         propGraphStyle as Number,
-        propGraphAxisLabels as Boolean,
+        propGraphXAxisLabels as Boolean,
+        propGraphYAxisLabels as Boolean,
+        xLabelYOffset as Number,
         propIs24H as Boolean,
         propIsMetricDistance as Boolean
     ) as Void {
@@ -63,9 +72,19 @@ class GraphRenderer {
         _labelHeight = labelHeight;
         _propGraphData = propGraphData;
         _propGraphStyle = propGraphStyle;
-        _propGraphAxisLabels = propGraphAxisLabels;
+        _propGraphXAxisLabels = propGraphXAxisLabels;
+        _propGraphYAxisLabels = propGraphYAxisLabels;
+        _xLabelYOffset = xLabelYOffset;
         _propIs24H = propIs24H;
         _propIsMetricDistance = propIsMetricDistance;
+    }
+
+    // Base fill colour for bars / lines / dots. Precipitation always renders blue;
+    // other sources use the theme's clock colour and may be overridden per-bar
+    // (e.g. stress).
+    hidden function getBarColor(themeColors as Array<Graphics.ColorType>) as Graphics.ColorType {
+        if(_propGraphData == 11) { return Graphics.COLOR_BLUE; }
+        return themeColors[clock];
     }
 
     function drawGraph(dc as Graphics.Dc, data as Array<Number>?, data2 as Array<Number>?, x as Number, y as Number, h as Number, themeColors as Array<Graphics.ColorType>) as Void {
@@ -74,7 +93,7 @@ class GraphRenderer {
         var bw = _barWidth;
         var bs = _barSpacing;
 
-        if(_propGraphAxisLabels) { y = y + _halfMarginY; }
+        if(_propGraphYAxisLabels) { y = y + _halfMarginY; }
 
         if(_propGraphData >= 8) {
             // Daily data mode: bar widths fill the device's graph area
@@ -85,8 +104,8 @@ class GraphRenderer {
         }
         var half_width = Math.round((data.size() * (bw + bs)) / 2);
 
-        // Shift right when axis labels are shown, to create space for Y-axis labels on the left
-        var xShift = _propGraphAxisLabels ? 10 : 0;
+        // Shift right when Y-axis labels are shown, to create space for Y-axis labels on the left
+        var xShift = _propGraphYAxisLabels ? 10 : 0;
 
         if(_propGraphStyle > 0) {
             // Line graph: fixed total width regardless of data point count
@@ -101,23 +120,27 @@ class GraphRenderer {
         var graphLeft = x - half_width;
         var graphRight = x + half_width;
 
-        if(_propGraphAxisLabels) {
+        if(_propGraphXAxisLabels || _propGraphYAxisLabels) {
             dc.setColor(themeColors[fieldLbl], Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(1);
             dc.drawLine(graphLeft, y + h, graphRight, y + h);   // X axis
             dc.drawLine(graphLeft, y, graphLeft, y + h);         // Y axis
+        }
 
+        if(_propGraphYAxisLabels) {
             dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
             var maxStr = formatGraphAxisValue(cachedGraphYMax);
-            dc.drawText(graphLeft - 2, y, _fontLabel, maxStr, Graphics.TEXT_JUSTIFY_RIGHT);
-            if(cachedGraphYMin != 0.0) {
-                var minStr = formatGraphAxisValue(cachedGraphYMin);
-                dc.drawText(graphLeft - 2, y + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
-            }
+            dc.drawText(graphLeft - 2, y - 3, _fontLabel, maxStr, Graphics.TEXT_JUSTIFY_RIGHT);
+            var minStr = formatGraphAxisValue(cachedGraphYMin);
+            dc.drawText(graphLeft - 2, y - 3 + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
+        }
+
+        if(_propGraphXAxisLabels) {
             var leftLabel = getGraphXLabel(true);
             var rightLabel = getGraphXLabel(false);
-            dc.drawText(graphLeft, y + h, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
-            dc.drawText(graphRight, y + h, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
+            dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
+            dc.drawText(graphLeft, y + h + _xLabelYOffset, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(graphRight, y + h + _xLabelYOffset, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
         }
 
         if(graphGoalLine != null) {
@@ -126,7 +149,7 @@ class GraphRenderer {
             dc.drawLine(graphLeft, goal_y, graphRight, goal_y);
         }
 
-        dc.setColor(themeColors[clock], Graphics.COLOR_TRANSPARENT);
+        dc.setColor(getBarColor(themeColors), Graphics.COLOR_TRANSPARENT);
         for(var i = 0; i < data.size(); i++) {
             if(data[i] == -1) { continue; } // gap (e.g. stress not measurable)
             if(_propGraphData == 7) {
@@ -137,7 +160,7 @@ class GraphRenderer {
                 // Zero value: draw a 1px stub
                 dc.setColor(themeColors[dateDim], Graphics.COLOR_TRANSPARENT);
                 dc.fillRectangle(bar_x, y + h - 1, bw, 1);
-                dc.setColor(themeColors[clock], Graphics.COLOR_TRANSPARENT);
+                dc.setColor(getBarColor(themeColors), Graphics.COLOR_TRANSPARENT);
                 continue;
             }
             var bar_height = Math.round(data[i] / scale);
@@ -164,28 +187,33 @@ class GraphRenderer {
         var graphRight = x + half_width;
         var totalW = graphRight - graphLeft;
 
-        // Draw axes
-        dc.setColor(themeColors[fieldLbl], Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(1);
-        dc.drawLine(graphLeft, y + h, graphRight, y + h);   // X axis
-        dc.drawLine(graphLeft, y, graphLeft, y + h);         // Y axis
+        // Draw axes only if at least one axis label is enabled
+        if(_propGraphXAxisLabels || _propGraphYAxisLabels) {
+            dc.setColor(themeColors[fieldLbl], Graphics.COLOR_TRANSPARENT);
+            dc.setPenWidth(1);
+            dc.drawLine(graphLeft, y + h, graphRight, y + h);   // X axis
+            dc.drawLine(graphLeft, y, graphLeft, y + h);         // Y axis
+        }
 
         // Draw axis labels if enabled
-        if(_propGraphAxisLabels) {
+        if(_propGraphYAxisLabels) {
             dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
             var maxStr = formatGraphAxisValue(cachedGraphYMax);
             var minStr = formatGraphAxisValue(cachedGraphYMin);
-            dc.drawText(graphLeft - 2, y, _fontLabel, maxStr, Graphics.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(graphLeft - 2, y + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(graphLeft - 2, y - 3, _fontLabel, maxStr, Graphics.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(graphLeft - 2, y - 3 + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
+        }
 
+        if(_propGraphXAxisLabels) {
             var leftLabel = getGraphXLabel(true);
             var rightLabel = getGraphXLabel(false);
-            dc.drawText(graphLeft, y + h, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
-            dc.drawText(graphRight, y + h, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
+            dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
+            dc.drawText(graphLeft, y + h + _xLabelYOffset, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(graphRight, y + h + _xLabelYOffset, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
         }
 
         // Draw line and optional dots
-        dc.setColor(themeColors[clock], Graphics.COLOR_TRANSPARENT);
+        dc.setColor(getBarColor(themeColors), Graphics.COLOR_TRANSPARENT);
         var prevX = -1;
         var prevY = -1;
         for(var i = 0; i < n; i++) {
@@ -200,11 +228,13 @@ class GraphRenderer {
             if(_propGraphStyle == 2) {
                 if(_propGraphData == 7) {
                     dc.setColor(getStressColor(data[i]), Graphics.COLOR_TRANSPARENT);
+                } else if(_propGraphData == 11) {
+                    dc.setColor(Graphics.COLOR_BLUE, Graphics.COLOR_TRANSPARENT);
                 } else {
                     dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
                 }
                 dc.fillRectangle(ptX - 1, ptY - 1, 3, 3);
-                dc.setColor(themeColors[clock], Graphics.COLOR_TRANSPARENT);
+                dc.setColor(getBarColor(themeColors), Graphics.COLOR_TRANSPARENT);
             }
             prevX = ptX;
             prevY = ptY;
@@ -224,7 +254,19 @@ class GraphRenderer {
         var epochMin = nowMoment.value() / 60;
         if (epochMin == _cachedXLabelEpochMin) { return; }
         _cachedXLabelEpochMin = epochMin;
-        if (_propGraphData >= 8) {
+        if (_propGraphData == 11) {
+            var infoFirst = Time.Gregorian.info(new Time.Moment(_precipFirstHourEpoch), Time.FORMAT_SHORT);
+            var infoLast  = Time.Gregorian.info(new Time.Moment(_precipLastHourEpoch),  Time.FORMAT_SHORT);
+            _cachedXLabelLeft  = formatXLabel(infoFirst.hour, infoFirst.min);
+            _cachedXLabelRight = formatXLabel(infoLast.hour,  infoLast.min);
+            // Mark the right label with "+" when it falls on a different calendar day from
+            // the left, so a 24h-wide window (e.g. 3-hour-interval providers like OWM and
+            // some Garmin firmwares) doesn't read as "16:00 ... 13:00" with no day cue.
+            var sameDay = (infoFirst.year == infoLast.year)
+                       && (infoFirst.month == infoLast.month)
+                       && (infoFirst.day == infoLast.day);
+            if (!sameDay) { _cachedXLabelRight = _cachedXLabelRight + "+"; }
+        } else if (_propGraphData >= 8) {
             var infoNow = Time.Gregorian.info(nowMoment, Time.FORMAT_SHORT);
             var target6 = nowMoment.subtract(new Time.Duration(6 * 86400));
             var info6 = Time.Gregorian.info(target6, Time.FORMAT_SHORT);
@@ -257,26 +299,37 @@ class GraphRenderer {
             return getDailyDataArray(dataSource);
         }
 
+        if(dataSource == 11) {
+            return getHourlyPrecipitationArray();
+        }
+
         var twoHours = new Time.Duration(7200);
         var iterator = null;
         var max = null;
 
         if(dataSource == 0) {
+            if(!(Toybox.SensorHistory has :getBodyBatteryHistory)) { return []; }
             iterator = Toybox.SensorHistory.getBodyBatteryHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
             max = 100;
         } else if(dataSource == 1) {
+            if(!(Toybox.SensorHistory has :getElevationHistory)) { return []; }
             iterator = Toybox.SensorHistory.getElevationHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
         } else if(dataSource == 2) {
+            if(!(Toybox.SensorHistory has :getHeartRateHistory)) { return []; }
             iterator = Toybox.SensorHistory.getHeartRateHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
         } else if(dataSource == 3) {
+            if(!(Toybox.SensorHistory has :getOxygenSaturationHistory)) { return []; }
             iterator = Toybox.SensorHistory.getOxygenSaturationHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
             max = 100;
         } else if(dataSource == 4) {
+            if(!(Toybox.SensorHistory has :getPressureHistory)) { return []; }
             iterator = Toybox.SensorHistory.getPressureHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
         } else if(dataSource == 5 or dataSource == 7) {
+            if(!(Toybox.SensorHistory has :getStressHistory)) { return []; }
             iterator = Toybox.SensorHistory.getStressHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
             max = 100;
         } else if(dataSource == 6) {
+            if(!(Toybox.SensorHistory has :getTemperatureHistory)) { return []; }
             iterator = Toybox.SensorHistory.getTemperatureHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
         }
 
@@ -437,6 +490,98 @@ class GraphRenderer {
         if(dataSource == 9) { return todayInfo.steps != null ? todayInfo.steps : 0; }
         if(dataSource == 10) { return todayInfo.activeMinutesDay != null ? todayInfo.activeMinutesDay.total : 0; }
         return 0;
+    }
+
+    // Hourly precipitation forecast graph. Reads cached forecast from Application.Storage
+    // and plots up to 8 upcoming hourly slots. Prefers precipitationAmount (mm, Y-axis is
+    // ceil'd mm); falls back to precipitationChance (%, Y-axis is 100) when no amount data
+    // is present (e.g. Garmin native provider). Empty hours render as 1px stubs via the
+    // shared >= 8 daily-mode path in drawBarGraph.
+    hidden function getHourlyPrecipitationArray() as Array<Number> {
+        graphGoalLine = null;
+        cachedGraphData2 = null;
+        cachedGraphYMin = 0.0;
+        cachedGraphYMax = 0.0;
+
+        var hf = Application.Storage.getValue("hourly_forecast") as Array?;
+        if(hf == null || hf.size() == 0) { return []; }
+
+        var nowEpoch = Time.now().value();
+        var futureCutoff = nowEpoch - 3600;
+
+        // Collect current+future entries, then sort by forecastTime ascending. Some providers
+        // (and Garmin's native API on certain firmwares) hand back the hourly array in a
+        // non-chronological order, so the X-axis labels and bar positions can only be
+        // trusted after an explicit sort.
+        var entries = [] as Array<Dictionary>;
+        for(var i = 0; i < hf.size(); i++) {
+            var entry = hf[i] as Dictionary;
+            var ftRaw = entry.get("forecastTime");
+            if(ftRaw == null) { continue; }
+            var ft = ftRaw as Number;
+            if(ft < futureCutoff) { continue; }
+            entries.add(entry);
+        }
+        if(entries.size() == 0) { return []; }
+
+        // Insertion sort by forecastTime ascending — N is small (<=~48), so O(N^2) is fine.
+        for(var i = 1; i < entries.size(); i++) {
+            var key = entries[i];
+            var keyT = (key.get("forecastTime") as Number);
+            var j = i - 1;
+            while(j >= 0 && (entries[j].get("forecastTime") as Number) > keyT) {
+                entries[j + 1] = entries[j];
+                j--;
+            }
+            entries[j + 1] = key;
+        }
+
+        var maxEntries = 8;
+        var count = entries.size() < maxEntries ? entries.size() : maxEntries;
+
+        var rawAmount = [] as Array<Float>;
+        var rawChance = [] as Array<Number>;
+        var maxAmount = 0.0f;
+        var hasAnyAmount = false;
+
+        for(var i = 0; i < count; i++) {
+            var entry = entries[i];
+            var amt = entry.get("precipitationAmount");
+            var amtF = (amt != null) ? (amt as Float).toFloat() : 0.0f;
+            if(amtF > 0.0f) { hasAnyAmount = true; }
+            var ch = entry.get("precipitationChance");
+            var chN = (ch != null) ? (ch as Number) : 0;
+            rawAmount.add(amtF);
+            rawChance.add(chN);
+            if(amtF > maxAmount) { maxAmount = amtF; }
+        }
+
+        _precipFirstHourEpoch = entries[0].get("forecastTime") as Number;
+        _precipLastHourEpoch  = entries[count - 1].get("forecastTime") as Number;
+        // Invalidate the X-label cache so the new time range is reflected immediately.
+        _cachedXLabelEpochMin = -1;
+
+        var ret = [] as Array<Number>;
+        if(hasAnyAmount) {
+            // Normalise so the tallest bar fills the graph. Use ceil(max) for axis label so
+            // a 0.5 mm peak still reads as "1" mm rather than truncating to "0".
+            var ceiledMax = Math.ceil(maxAmount).toFloat();
+            if(ceiledMax < 1.0f) { ceiledMax = 1.0f; }
+            cachedGraphYMax = ceiledMax;
+            for(var i = 0; i < rawAmount.size(); i++) {
+                ret.add(Math.round(rawAmount[i] / ceiledMax * 100).toNumber());
+            }
+        } else {
+            // Fallback: plot precipitation chance (0-100%) when no amount data is available.
+            cachedGraphYMax = 100.0;
+            for(var i = 0; i < rawChance.size(); i++) {
+                var c = rawChance[i];
+                if(c < 0) { c = 0; }
+                if(c > 100) { c = 100; }
+                ret.add(c);
+            }
+        }
+        return ret;
     }
 
 }
