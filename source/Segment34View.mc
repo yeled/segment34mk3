@@ -64,7 +64,8 @@ class Segment34View extends WatchUi.WatchFace {
     hidden var graphHalfWidth as Number = 0;  // max half-width of graph area; set per device in loadResources()
     hidden var propGraphSize as Number = 0;
     hidden var propGraphStyle as Number = 0;
-    hidden var propGraphAxisLabels as Boolean = false;
+    hidden var propGraphXAxisLabels as Boolean = false;
+    hidden var propGraphYAxisLabels as Boolean = false;
     hidden var bottomFieldWidths as Array<Number> = [3, 3, 3, 0];
 
     // Cached graph data — sensor history only changes once per minute,
@@ -193,7 +194,6 @@ class Segment34View extends WatchUi.WatchFace {
     hidden var propSmallFontVariant as Number = 0;
     hidden var propBottomFontVariant as Number = 2;
     hidden var propStressDynamicColor as Boolean = false;
-    hidden var propExperimentalBattOpt as Boolean = false;
 
     var clockBgText = "";
 
@@ -237,8 +237,8 @@ class Segment34View extends WatchUi.WatchFace {
 
         graphRenderer.configure(
             graphBarWidth, graphBarSpacing, graphTargetWidth, graphHalfWidth, halfMarginY,
-            fontLabel, labelHeight, propGraphData, propGraphStyle, propGraphAxisLabels,
-            propIs24H, propIsMetricDistance
+            fontLabel, labelHeight, propGraphData, propGraphStyle, propGraphXAxisLabels, propGraphYAxisLabels,
+            propFontSize == 1 ? 1 : 0, propIs24H, propIsMetricDistance
         );
 
         calculateLayout();
@@ -261,7 +261,8 @@ class Segment34View extends WatchUi.WatchFace {
         propGraphData = p.getValue("histogramData") as Number;
         propGraphSize = p.getValue("histogramSize") as Number;
         propGraphStyle = p.getValue("graphStyle") as Number;
-        propGraphAxisLabels = p.getValue("graphAxisLabels") as Boolean;
+        propGraphXAxisLabels = p.getValue("graphXAxisLabels") as Boolean;
+        propGraphYAxisLabels = p.getValue("graphYAxisLabels") as Boolean;
         cachedGraphData = null; // force graph data refresh when properties change
         propSunriseFieldShows = p.getValue("sunriseFieldShows") as Number;
         propSunsetFieldShows = p.getValue("sunsetFieldShows") as Number;
@@ -327,7 +328,6 @@ class Segment34View extends WatchUi.WatchFace {
         propSmallFontVariant = p.getValue("smallFontVariant") as Number;
         propBottomFontVariant = p.getValue("bottomFontVariant") as Number;
         propStressDynamicColor = p.getValue("stressDynamicColor") as Boolean;
-        propExperimentalBattOpt = p.getValue("experimentalBattOpt") as Boolean;
         propWeatherProvider = p.getValue("weatherProvider") as Number;
 
         theme.resetNightMode(); // force update color theme
@@ -440,7 +440,7 @@ class Segment34View extends WatchUi.WatchFace {
         graphBarWidth = (propGraphSize == 1) ? 2 : 1;
         graphBarSpacing = (propGraphSize == 1) ? 2 : 1;
         graphHeight = (propGraphSize == 1) ? 25 : 18;
-        graphTargetWidth = (propGraphSize == 1) ? 25 : 40;
+        graphTargetWidth = (propGraphSize == 1) ? 20 : 40;
         graphHalfWidth = screenWidth / 6;
     }
 
@@ -498,7 +498,7 @@ class Segment34View extends WatchUi.WatchFace {
         graphBarWidth = (propGraphSize == 1) ? 2 : 1;
         graphBarSpacing = (propGraphSize == 1) ? 2 : 1;
         graphHeight = (propGraphSize == 1) ? 28 : 20;
-        graphTargetWidth = (propGraphSize == 1) ? 25 : 40;
+        graphTargetWidth = (propGraphSize == 1) ? 20 : 40;
         graphHalfWidth = screenWidth / 6;
     }
 
@@ -557,7 +557,8 @@ class Segment34View extends WatchUi.WatchFace {
         baseX = centerX;
         barBottomAdj = 2;
         graphHeight = (propGraphSize == 1) ? 35 : 25;
-        graphHalfWidth = screenWidth / 6;
+        graphHalfWidth = screenWidth / 7;
+        graphTargetWidth = 30;
     }
 
     (:Round416)
@@ -615,7 +616,8 @@ class Segment34View extends WatchUi.WatchFace {
         barBottomAdj = 2;
         bottomFiveAdj = 8;
         graphHeight = (propGraphSize == 1) ? 35 : 25;
-        graphHalfWidth = screenWidth / 6;
+        graphTargetWidth = 32;
+        graphHalfWidth = screenWidth / 7;
     }
 
     (:Round454)
@@ -674,7 +676,7 @@ class Segment34View extends WatchUi.WatchFace {
         bottomDataWidth = 24;
         barBottomAdj = 2;
         graphHeight = (propGraphSize == 1) ? 40 : 30;
-        graphTargetWidth = 45;
+        graphTargetWidth = 38;
         graphHalfWidth = screenWidth / 6;
     }
 
@@ -887,8 +889,6 @@ class Segment34View extends WatchUi.WatchFace {
         var nowMoment = Time.now();
         var unix_timestamp = nowMoment.value();
         var now = Time.Gregorian.info(nowMoment, Time.FORMAT_SHORT);
-        var needsFullRedraw = doesPartialUpdate;
-
         if(doesPartialUpdate) {
             dc.clearClip();
             doesPartialUpdate = false;
@@ -899,13 +899,11 @@ class Segment34View extends WatchUi.WatchFace {
             updateColorTheme();
             updateWeather();
             dataHelper.updateVo2History();
-            needsFullRedraw = true;
         }
 
         if(lastUpdate == null or unix_timestamp - lastUpdate >= propUpdateFreq) {
             lastUpdate = unix_timestamp;
             cachedValues = computeDisplayValues(now);
-            needsFullRedraw = true;
         } else {
             // Only update time-sensitive values
             cachedValues[:dataClock] = getClockData(now);
@@ -915,7 +913,7 @@ class Segment34View extends WatchUi.WatchFace {
         if(isSleeping and canBurnIn) {
             drawAOD(dc, now, cachedValues);
         } else {
-            drawWatchface(dc, now, false, cachedValues, propExperimentalBattOpt && !needsFullRedraw);
+            drawWatchface(dc, now, false, cachedValues, false);
         }
     }
 
@@ -1127,8 +1125,8 @@ class Segment34View extends WatchUi.WatchFace {
 
         // Draw Top data fields or graph
         if(propTopPartShows == 2) {
-            var xLabelSpace = propGraphAxisLabels ? labelHeight + 2 : 0;
-            yn3 = yn2 - marginY - graphHeight - xLabelSpace;
+            var bottomLabelSpace = propGraphXAxisLabels ? labelHeight + 2 : 0;
+            yn3 = yn2 - marginY - graphHeight - bottomLabelSpace;
             graphRenderer.drawGraph(dc, values[:dataGraph1], values[:dataGraph1b], centerX, yn3, graphHeight, theme.colors);
         } else {
             var top_data_height = marginY;
@@ -1377,6 +1375,26 @@ class Segment34View extends WatchUi.WatchFace {
         return value_bg_width;
     }
 
+    hidden function isBatteryIconVisible() as Boolean {
+        if(propBatteryVariant == 2) { return false; }
+        if(propBatteryVariant == -1 and propFontSize == 1 and (propBottomFieldShows != -2 or propBottomField2Shows != -2)) { return false; }
+        return true;
+    }
+
+    hidden function getBottomIconY(stepWidth as Number) as Number {
+        if(propFontSize == 1 and stepWidth == 0) {
+            if(isBatteryIconVisible()) {
+                // Battery icon uses a top-aligned drawText call, while the side icons use VCENTER.
+                // Convert the battery icon's top position into the icon centerline so the icons sit alongside it.
+                return getBatteryIconY() + (largeDataHeight / 2) + iconYAdj;
+            }
+            if(screenWidth <= 280) { return screenHeight - 28; }
+            return screenHeight - 31;
+        }
+
+        return bottomFiveY + (largeDataHeight / 2) + iconYAdj;
+    }
+
     (:Square)
     hidden function drawBottomFieldsWithIcons(dc as Dc, values as Dictionary) as Void {
         if (dualBottomFieldActive) {
@@ -1411,22 +1429,20 @@ class Segment34View extends WatchUi.WatchFace {
         } else {
             // Single field - original behavior
             var step_width = drawDataField(dc, centerX, bottomFiveY, 3, null, values[:dataBottom], 5, fontBottomData, bottomDataWidth * 5);
+            var iconY = getBottomIconY(step_width);
 
             // Draw icons
             if(propFontSize == 1 and step_width == 0) {
-                var y = 0;
                 if(screenWidth <= 280) {
                     step_width = 45;
-                    y = screenHeight - 28;
                 } else {
                     step_width = 65;
-                    y = screenHeight - 31;
                 }
-                drawIconWithOverlay(dc, centerX - (step_width / 2) - (marginX / 2), y, Graphics.TEXT_JUSTIFY_RIGHT, values[:dataIcon1], values[:dataIcon1Count] as String, values[:dataIcon1Color] as Number?);
-                drawIconWithOverlay(dc, centerX + (step_width / 2) + (marginX / 2) - 2, y, Graphics.TEXT_JUSTIFY_LEFT, values[:dataIcon2], values[:dataIcon2Count] as String, values[:dataIcon2Color] as Number?);
+                drawIconWithOverlay(dc, centerX - (step_width / 2) - (marginX / 2), iconY, Graphics.TEXT_JUSTIFY_RIGHT, values[:dataIcon1], values[:dataIcon1Count] as String, values[:dataIcon1Color] as Number?);
+                drawIconWithOverlay(dc, centerX + (step_width / 2) + (marginX / 2) - 2, iconY, Graphics.TEXT_JUSTIFY_LEFT, values[:dataIcon2], values[:dataIcon2Count] as String, values[:dataIcon2Color] as Number?);
             } else {
-                drawIconWithOverlay(dc, centerX - (step_width / 2) - (marginX / 2), bottomFiveY + (largeDataHeight / 2) + iconYAdj, Graphics.TEXT_JUSTIFY_RIGHT, values[:dataIcon1], values[:dataIcon1Count] as String, values[:dataIcon1Color] as Number?);
-                drawIconWithOverlay(dc, centerX + (step_width / 2) + (marginX / 2) - 2, bottomFiveY + (largeDataHeight / 2) + iconYAdj, Graphics.TEXT_JUSTIFY_LEFT, values[:dataIcon2], values[:dataIcon2Count] as String, values[:dataIcon2Color] as Number?);
+                drawIconWithOverlay(dc, centerX - (step_width / 2) - (marginX / 2), iconY, Graphics.TEXT_JUSTIFY_RIGHT, values[:dataIcon1], values[:dataIcon1Count] as String, values[:dataIcon1Color] as Number?);
+                drawIconWithOverlay(dc, centerX + (step_width / 2) + (marginX / 2) - 2, iconY, Graphics.TEXT_JUSTIFY_LEFT, values[:dataIcon2], values[:dataIcon2Count] as String, values[:dataIcon2Color] as Number?);
             }
         }
     }
@@ -1434,22 +1450,20 @@ class Segment34View extends WatchUi.WatchFace {
     (:Round)
     hidden function drawBottomFieldsWithIcons(dc as Dc, values as Dictionary) as Void {
         var step_width = drawDataField(dc, centerX, bottomFiveY, 3, null, values[:dataBottom], 5, fontBottomData, bottomDataWidth * 5);
+        var iconY = getBottomIconY(step_width);
 
         // Draw icons
         if(propFontSize == 1 and step_width == 0) {
-            var y = 0;
             if(screenWidth <= 280) {
                 step_width = 45;
-                y = screenHeight - 28;
             } else {
                 step_width = 65;
-                y = screenHeight - 31;
             }
-            drawIconWithOverlay(dc, centerX - (step_width / 2) - (marginX / 2), y, Graphics.TEXT_JUSTIFY_RIGHT, values[:dataIcon1], values[:dataIcon1Count] as String, values[:dataIcon1Color] as Number?);
-            drawIconWithOverlay(dc, centerX + (step_width / 2) + (marginX / 2) - 2, y, Graphics.TEXT_JUSTIFY_LEFT, values[:dataIcon2], values[:dataIcon2Count] as String, values[:dataIcon2Color] as Number?);
+            drawIconWithOverlay(dc, centerX - (step_width / 2) - (marginX / 2), iconY, Graphics.TEXT_JUSTIFY_RIGHT, values[:dataIcon1], values[:dataIcon1Count] as String, values[:dataIcon1Color] as Number?);
+            drawIconWithOverlay(dc, centerX + (step_width / 2) + (marginX / 2) - 2, iconY, Graphics.TEXT_JUSTIFY_LEFT, values[:dataIcon2], values[:dataIcon2Count] as String, values[:dataIcon2Color] as Number?);
         } else {
-            drawIconWithOverlay(dc, centerX - (step_width / 2) - (marginX / 2), bottomFiveY + (largeDataHeight / 2) + iconYAdj, Graphics.TEXT_JUSTIFY_RIGHT, values[:dataIcon1], values[:dataIcon1Count] as String, values[:dataIcon1Color] as Number?);
-            drawIconWithOverlay(dc, centerX + (step_width / 2) + (marginX / 2) - 2, bottomFiveY + (largeDataHeight / 2) + iconYAdj, Graphics.TEXT_JUSTIFY_LEFT, values[:dataIcon2], values[:dataIcon2Count] as String, values[:dataIcon2Color] as Number?);
+            drawIconWithOverlay(dc, centerX - (step_width / 2) - (marginX / 2), iconY, Graphics.TEXT_JUSTIFY_RIGHT, values[:dataIcon1], values[:dataIcon1Count] as String, values[:dataIcon1Color] as Number?);
+            drawIconWithOverlay(dc, centerX + (step_width / 2) + (marginX / 2) - 2, iconY, Graphics.TEXT_JUSTIFY_LEFT, values[:dataIcon2], values[:dataIcon2Count] as String, values[:dataIcon2Color] as Number?);
         }
     }
 
@@ -1532,11 +1546,16 @@ class Segment34View extends WatchUi.WatchFace {
     }
 
     (:MIP)
+    hidden function getBatteryIconY() as Number {
+        if(propFontSize == 0) { return screenHeight - 20; }
+        return screenHeight - 28;
+    }
+
+    (:MIP)
     hidden function drawBatteryIcon(dc as Dc, values as Dictionary) {
-        if(propBatteryVariant == 2) { return; }
-        if(propBatteryVariant == -1 and propFontSize == 1 and (propBottomFieldShows != -2 or propBottomField2Shows != -2)) { return; } // Auto - hide if large font and bottom field is shown
+        if(!isBatteryIconVisible()) { return; }
         var x = centerX;
-        var y =  screenHeight - 20;
+        var y = getBatteryIconY();
         dc.setColor(0x555555, Graphics.COLOR_TRANSPARENT);
 
         if(propFontSize == 0) {
@@ -1552,7 +1571,6 @@ class Segment34View extends WatchUi.WatchFace {
                 dc.drawText(x - 1, y + 3, fontBattery, values[:dataBattery], Graphics.TEXT_JUSTIFY_CENTER);
             }
         } else {
-            y = screenHeight - 28;
             dc.drawText(x, y, fontIcons, "C", Graphics.TEXT_JUSTIFY_CENTER);
             if(System.getSystemStats().battery <= 15) {
                 dc.setColor(0xFF0000, Graphics.COLOR_TRANSPARENT);
@@ -1568,11 +1586,16 @@ class Segment34View extends WatchUi.WatchFace {
     }
 
     (:AMOLED)
+    hidden function getBatteryIconY() as Number {
+        if(propFontSize == 0) { return screenHeight - 25; }
+        return screenHeight - 33;
+    }
+
+    (:AMOLED)
     hidden function drawBatteryIcon(dc as Dc, values as Dictionary) {
-        if(propBatteryVariant == 2) { return; }
-        if(propBatteryVariant == -1 and propFontSize == 1 and (propBottomFieldShows != -2 or propBottomField2Shows != -2)) { return; } // Auto - hide if large font and bottom field is shown
+        if(!isBatteryIconVisible()) { return; }
         var x = centerX;
-        var y =  screenHeight - 25;
+        var y = getBatteryIconY();
         dc.setColor(0x555555, Graphics.COLOR_TRANSPARENT);
 
         if(propFontSize == 0) {
@@ -1588,7 +1611,6 @@ class Segment34View extends WatchUi.WatchFace {
                 dc.drawText(x - 1, y + 4, fontBattery, values[:dataBattery], Graphics.TEXT_JUSTIFY_CENTER);
             }
         } else {
-            y = screenHeight - 33;
             dc.drawText(x, y, fontIcons, "T", Graphics.TEXT_JUSTIFY_CENTER);
             if(System.getSystemStats().battery <= 15) {
                 dc.setColor(0xFF0000, Graphics.COLOR_TRANSPARENT);

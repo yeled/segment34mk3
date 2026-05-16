@@ -220,16 +220,17 @@ class ValueResolver {
             case 63:
             case 64: return _weatherHelper.getCivilTwilightFormatted(complicationType, width);
             case 68: return _dataHelper.getDailyCounterFormatted();
+            case 69: return _weatherHelper.getNextCivilTwilightEventFormatted(width);
         }
         return "";
     }
 
     hidden function getBarometricPressureFormatted(complicationType as Number, width as Number) as String {
         var info = Activity.getActivityInfo();
-        if (complicationType == 22 && info.rawAmbientPressure != null) {
+        if (complicationType == 22 && (info has :rawAmbientPressure) && info.rawAmbientPressure != null) {
             return formatPressure(info.rawAmbientPressure / 100.0, width, _propPressureUnit);
         }
-        if (complicationType == 26 && info.meanSeaLevelPressure != null) {
+        if (complicationType == 26 && (info has :meanSeaLevelPressure) && info.meanSeaLevelPressure != null) {
             return formatPressure(info.meanSeaLevelPressure / 100.0, width, _propPressureUnit);
         }
         return "";
@@ -341,6 +342,7 @@ class ValueResolver {
                 if(_propIsMetricDistance) { return formatLabel(Rez.Strings.LABEL_WKM_1, Rez.Strings.LABEL_WSWIMKM_2, labelSize); }
                 return formatLabel(Rez.Strings.LABEL_WMI_1, Rez.Strings.LABEL_WSWIMMI_2, labelSize);
             case 68: return formatLabel(Rez.Strings.LABEL_CNT_1, Rez.Strings.LABEL_CNT_2, labelSize);
+            case 69: return formatLabel(Rez.Strings.LABEL_NEXTTWI_1, Rez.Strings.LABEL_NEXTTWI_2, labelSize);
         }
         return "";
     }

@@ -166,6 +166,8 @@
     <string id="LABEL_PRECIP_1">NEDERB</string>
     <string id="LABEL_NEXTSUN_1">SOL</string>
     <string id="LABEL_NEXTSUN_2">NÄSTA SOL</string>
+    <string id="LABEL_NEXTTWI_1">GRY/SKY</string>
+    <string id="LABEL_NEXTTWI_2">NÄSTA GRY/SKY</string>
     <string id="LABEL_NEXTCAL_1">KAL</string>
     <string id="LABEL_NEXTCAL_2">NÄSTA KAL</string>
     <string id="LABEL_OX_1">OX</string>
@@ -267,6 +269,7 @@
     <string id="settings_sunrise_time" scope="settings">Soluppgångstid</string>
     <string id="settings_sunset_time" scope="settings">Solnedgångstid</string>
     <string id="settings_next_sun_event" scope="settings">Nästa solhändelse tid (solnedgång/soluppgång)</string>
+    <string id="settings_next_dawn_dusk_event" scope="settings">Nästa civil gryning/skymning</string>
     <string id="settings_civil_dawn" scope="settings">Civil gryning tid</string>
     <string id="settings_civil_dusk" scope="settings">Civil skymning tid</string>
     <string id="settings_hrs_next_sun_event" scope="settings">Timmar till nästa solhändelse (solnedgång/soluppgång)</string>
@@ -486,12 +489,13 @@
     <string id="settings_graph_shows" scope="settings">Graf visar (måste aktiveras i Övre delen visar)</string>
     <string id="settings_graph_size" scope="settings">Grafstorlek</string>
     <string id="settings_graph_small" scope="settings">Liten (standard)</string>
-    <string id="settings_graph_large" scope="settings">Stor</string>
+    <string id="settings_graph_large" scope="settings">Stor (etiketter kan klippas av)</string>
     <string id="settings_graph_style" scope="settings">Grafstil</string>
     <string id="settings_graph_style_bars" scope="settings">Staplar</string>
     <string id="settings_graph_style_line" scope="settings">Linje</string>
     <string id="settings_graph_style_dots" scope="settings">Linje + punkter</string>
-    <string id="settings_graph_axis_labels" scope="settings">Visa axeletiketter</string>
+    <string id="settings_graph_x_axis_labels" scope="settings">Visa X-axeletiketter</string>
+    <string id="settings_graph_y_axis_labels" scope="settings">Visa Y-axeletiketter</string>
     <string id="settings_auto" scope="settings">Auto - AM/PM för 12h-tid</string>
     <string id="settings_ampm" scope="settings">Ingen separator, visa AM/PM efter istället</string>
     <string id="settings_show_temp_unit" scope="settings">Visa temperaturenhet</string>
@@ -517,5 +521,4 @@
     <string id="settings_daily_counter" scope="settings">Räknare (återställs dagligen, långtryck för att öka)</string>
     <string id="settings_increase_counter" scope="settings">Öka räknaren</string>
     <string id="settings_decrease_counter" scope="settings">Minska räknaren</string>
-    <string id="settings_experimental_batt_opt" scope="settings">Experimental battery optimization</string>
 </strings>

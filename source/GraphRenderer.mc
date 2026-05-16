@@ -24,7 +24,9 @@ class GraphRenderer {
     // Props (set via configure())
     hidden var _propGraphData as Number = 0;
     hidden var _propGraphStyle as Number = 0;
-    hidden var _propGraphAxisLabels as Boolean = false;
+    hidden var _propGraphXAxisLabels as Boolean = false;
+    hidden var _propGraphYAxisLabels as Boolean = false;
+    hidden var _xLabelYOffset as Number = 0;
     hidden var _propIs24H as Boolean = false;
     hidden var _propIsMetricDistance as Boolean = true;
 
@@ -55,7 +57,9 @@ class GraphRenderer {
         labelHeight as Number,
         propGraphData as Number,
         propGraphStyle as Number,
-        propGraphAxisLabels as Boolean,
+        propGraphXAxisLabels as Boolean,
+        propGraphYAxisLabels as Boolean,
+        xLabelYOffset as Number,
         propIs24H as Boolean,
         propIsMetricDistance as Boolean
     ) as Void {
@@ -68,7 +72,9 @@ class GraphRenderer {
         _labelHeight = labelHeight;
         _propGraphData = propGraphData;
         _propGraphStyle = propGraphStyle;
-        _propGraphAxisLabels = propGraphAxisLabels;
+        _propGraphXAxisLabels = propGraphXAxisLabels;
+        _propGraphYAxisLabels = propGraphYAxisLabels;
+        _xLabelYOffset = xLabelYOffset;
         _propIs24H = propIs24H;
         _propIsMetricDistance = propIsMetricDistance;
     }
@@ -87,7 +93,7 @@ class GraphRenderer {
         var bw = _barWidth;
         var bs = _barSpacing;
 
-        if(_propGraphAxisLabels) { y = y + _halfMarginY; }
+        if(_propGraphYAxisLabels) { y = y + _halfMarginY; }
 
         if(_propGraphData >= 8) {
             // Daily data mode: bar widths fill the device's graph area
@@ -98,8 +104,8 @@ class GraphRenderer {
         }
         var half_width = Math.round((data.size() * (bw + bs)) / 2);
 
-        // Shift right when axis labels are shown, to create space for Y-axis labels on the left
-        var xShift = _propGraphAxisLabels ? 10 : 0;
+        // Shift right when Y-axis labels are shown, to create space for Y-axis labels on the left
+        var xShift = _propGraphYAxisLabels ? 10 : 0;
 
         if(_propGraphStyle > 0) {
             // Line graph: fixed total width regardless of data point count
@@ -114,23 +120,27 @@ class GraphRenderer {
         var graphLeft = x - half_width;
         var graphRight = x + half_width;
 
-        if(_propGraphAxisLabels) {
+        if(_propGraphXAxisLabels || _propGraphYAxisLabels) {
             dc.setColor(themeColors[fieldLbl], Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(1);
             dc.drawLine(graphLeft, y + h, graphRight, y + h);   // X axis
             dc.drawLine(graphLeft, y, graphLeft, y + h);         // Y axis
+        }
 
+        if(_propGraphYAxisLabels) {
             dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
             var maxStr = formatGraphAxisValue(cachedGraphYMax);
-            dc.drawText(graphLeft - 2, y, _fontLabel, maxStr, Graphics.TEXT_JUSTIFY_RIGHT);
-            if(cachedGraphYMin != 0.0) {
-                var minStr = formatGraphAxisValue(cachedGraphYMin);
-                dc.drawText(graphLeft - 2, y + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
-            }
+            dc.drawText(graphLeft - 2, y - 3, _fontLabel, maxStr, Graphics.TEXT_JUSTIFY_RIGHT);
+            var minStr = formatGraphAxisValue(cachedGraphYMin);
+            dc.drawText(graphLeft - 2, y - 3 + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
+        }
+
+        if(_propGraphXAxisLabels) {
             var leftLabel = getGraphXLabel(true);
             var rightLabel = getGraphXLabel(false);
-            dc.drawText(graphLeft, y + h, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
-            dc.drawText(graphRight, y + h, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
+            dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
+            dc.drawText(graphLeft, y + h + _xLabelYOffset, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(graphRight, y + h + _xLabelYOffset, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
         }
 
         if(graphGoalLine != null) {
@@ -177,24 +187,29 @@ class GraphRenderer {
         var graphRight = x + half_width;
         var totalW = graphRight - graphLeft;
 
-        // Draw axes
-        dc.setColor(themeColors[fieldLbl], Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(1);
-        dc.drawLine(graphLeft, y + h, graphRight, y + h);   // X axis
-        dc.drawLine(graphLeft, y, graphLeft, y + h);         // Y axis
+        // Draw axes only if at least one axis label is enabled
+        if(_propGraphXAxisLabels || _propGraphYAxisLabels) {
+            dc.setColor(themeColors[fieldLbl], Graphics.COLOR_TRANSPARENT);
+            dc.setPenWidth(1);
+            dc.drawLine(graphLeft, y + h, graphRight, y + h);   // X axis
+            dc.drawLine(graphLeft, y, graphLeft, y + h);         // Y axis
+        }
 
         // Draw axis labels if enabled
-        if(_propGraphAxisLabels) {
+        if(_propGraphYAxisLabels) {
             dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
             var maxStr = formatGraphAxisValue(cachedGraphYMax);
             var minStr = formatGraphAxisValue(cachedGraphYMin);
-            dc.drawText(graphLeft - 2, y, _fontLabel, maxStr, Graphics.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(graphLeft - 2, y + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(graphLeft - 2, y - 3, _fontLabel, maxStr, Graphics.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(graphLeft - 2, y - 3 + h - _labelHeight, _fontLabel, minStr, Graphics.TEXT_JUSTIFY_RIGHT);
+        }
 
+        if(_propGraphXAxisLabels) {
             var leftLabel = getGraphXLabel(true);
             var rightLabel = getGraphXLabel(false);
-            dc.drawText(graphLeft, y + h, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
-            dc.drawText(graphRight, y + h, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
+            dc.setColor(themeColors[dataVal], Graphics.COLOR_TRANSPARENT);
+            dc.drawText(graphLeft, y + h + _xLabelYOffset, _fontLabel, leftLabel, Graphics.TEXT_JUSTIFY_LEFT);
+            dc.drawText(graphRight, y + h + _xLabelYOffset, _fontLabel, rightLabel, Graphics.TEXT_JUSTIFY_RIGHT);
         }
 
         // Draw line and optional dots
@@ -293,21 +308,28 @@ class GraphRenderer {
         var max = null;
 
         if(dataSource == 0) {
+            if(!(Toybox.SensorHistory has :getBodyBatteryHistory)) { return []; }
             iterator = Toybox.SensorHistory.getBodyBatteryHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
             max = 100;
         } else if(dataSource == 1) {
+            if(!(Toybox.SensorHistory has :getElevationHistory)) { return []; }
             iterator = Toybox.SensorHistory.getElevationHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
         } else if(dataSource == 2) {
+            if(!(Toybox.SensorHistory has :getHeartRateHistory)) { return []; }
             iterator = Toybox.SensorHistory.getHeartRateHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
         } else if(dataSource == 3) {
+            if(!(Toybox.SensorHistory has :getOxygenSaturationHistory)) { return []; }
             iterator = Toybox.SensorHistory.getOxygenSaturationHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
             max = 100;
         } else if(dataSource == 4) {
+            if(!(Toybox.SensorHistory has :getPressureHistory)) { return []; }
             iterator = Toybox.SensorHistory.getPressureHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
         } else if(dataSource == 5 or dataSource == 7) {
+            if(!(Toybox.SensorHistory has :getStressHistory)) { return []; }
             iterator = Toybox.SensorHistory.getStressHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
             max = 100;
         } else if(dataSource == 6) {
+            if(!(Toybox.SensorHistory has :getTemperatureHistory)) { return []; }
             iterator = Toybox.SensorHistory.getTemperatureHistory({:period => twoHours, :order => Toybox.SensorHistory.ORDER_OLDEST_FIRST});
         }
 

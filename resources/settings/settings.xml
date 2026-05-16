@@ -186,6 +186,7 @@
             <listEntry value="35">@Strings.settings_sunrise_time</listEntry>
             <listEntry value="36">@Strings.settings_sunset_time</listEntry>
             <listEntry value="43">@Strings.settings_next_sun_event</listEntry>
+            <listEntry value="69">@Strings.settings_next_dawn_dusk_event</listEntry>
             <listEntry value="63">@Strings.settings_civil_dawn</listEntry>
             <listEntry value="64">@Strings.settings_civil_dusk</listEntry>
             <listEntry value="56">@Strings.settings_hrs_next_sun_event</listEntry>
@@ -251,6 +252,7 @@
             <listEntry value="35">@Strings.settings_sunrise_time</listEntry>
             <listEntry value="36">@Strings.settings_sunset_time</listEntry>
             <listEntry value="43">@Strings.settings_next_sun_event</listEntry>
+            <listEntry value="69">@Strings.settings_next_dawn_dusk_event</listEntry>
             <listEntry value="63">@Strings.settings_civil_dawn</listEntry>
             <listEntry value="64">@Strings.settings_civil_dusk</listEntry>
             <listEntry value="56">@Strings.settings_hrs_next_sun_event</listEntry>
@@ -313,7 +315,11 @@
         </settingConfig>
     </setting>
 
-    <setting propertyKey="@Properties.graphAxisLabels" title="@Strings.settings_graph_axis_labels">
+    <setting propertyKey="@Properties.graphXAxisLabels" title="@Strings.settings_graph_x_axis_labels">
+        <settingConfig type="boolean" />
+    </setting>
+
+    <setting propertyKey="@Properties.graphYAxisLabels" title="@Strings.settings_graph_y_axis_labels">
         <settingConfig type="boolean" />
     </setting>
 
@@ -522,6 +528,7 @@
             <listEntry value="35">@Strings.settings_sunrise_time</listEntry>
             <listEntry value="36">@Strings.settings_sunset_time</listEntry>
             <listEntry value="43">@Strings.settings_next_sun_event</listEntry>
+            <listEntry value="69">@Strings.settings_next_dawn_dusk_event</listEntry>
             <listEntry value="63">@Strings.settings_civil_dawn</listEntry>
             <listEntry value="64">@Strings.settings_civil_dusk</listEntry>
             <listEntry value="56">@Strings.settings_hrs_next_sun_event</listEntry>
@@ -587,6 +594,7 @@
             <listEntry value="35">@Strings.settings_sunrise_time</listEntry>
             <listEntry value="36">@Strings.settings_sunset_time</listEntry>
             <listEntry value="43">@Strings.settings_next_sun_event</listEntry>
+            <listEntry value="69">@Strings.settings_next_dawn_dusk_event</listEntry>
             <listEntry value="63">@Strings.settings_civil_dawn</listEntry>
             <listEntry value="64">@Strings.settings_civil_dusk</listEntry>
             <listEntry value="56">@Strings.settings_hrs_next_sun_event</listEntry>
@@ -652,6 +660,7 @@
             <listEntry value="35">@Strings.settings_sunrise_time</listEntry>
             <listEntry value="36">@Strings.settings_sunset_time</listEntry>
             <listEntry value="43">@Strings.settings_next_sun_event</listEntry>
+            <listEntry value="69">@Strings.settings_next_dawn_dusk_event</listEntry>
             <listEntry value="63">@Strings.settings_civil_dawn</listEntry>
             <listEntry value="64">@Strings.settings_civil_dusk</listEntry>
             <listEntry value="56">@Strings.settings_hrs_next_sun_event</listEntry>
@@ -717,6 +726,7 @@
             <listEntry value="35">@Strings.settings_sunrise_time</listEntry>
             <listEntry value="36">@Strings.settings_sunset_time</listEntry>
             <listEntry value="43">@Strings.settings_next_sun_event</listEntry>
+            <listEntry value="69">@Strings.settings_next_dawn_dusk_event</listEntry>
             <listEntry value="63">@Strings.settings_civil_dawn</listEntry>
             <listEntry value="64">@Strings.settings_civil_dusk</listEntry>
             <listEntry value="56">@Strings.settings_hrs_next_sun_event</listEntry>
@@ -777,6 +787,7 @@
             <listEntry value="35">@Strings.settings_sunrise_time</listEntry>
             <listEntry value="36">@Strings.settings_sunset_time</listEntry>
             <listEntry value="43">@Strings.settings_next_sun_event</listEntry>
+            <listEntry value="69">@Strings.settings_next_dawn_dusk_event</listEntry>
             <listEntry value="63">@Strings.settings_civil_dawn</listEntry>
             <listEntry value="64">@Strings.settings_civil_dusk</listEntry>
             <listEntry value="56">@Strings.settings_hrs_next_sun_event</listEntry>
@@ -816,6 +827,7 @@
             <listEntry value="35">@Strings.settings_sunrise_time</listEntry>
             <listEntry value="36">@Strings.settings_sunset_time</listEntry>
             <listEntry value="43">@Strings.settings_next_sun_event</listEntry>
+            <listEntry value="69">@Strings.settings_next_dawn_dusk_event</listEntry>
             <listEntry value="63">@Strings.settings_civil_dawn</listEntry>
             <listEntry value="64">@Strings.settings_civil_dusk</listEntry>
             <listEntry value="56">@Strings.settings_hrs_next_sun_event</listEntry>
@@ -926,6 +938,7 @@
             <listEntry value="35">@Strings.settings_sunrise_time</listEntry>
             <listEntry value="36">@Strings.settings_sunset_time</listEntry>
             <listEntry value="43">@Strings.settings_next_sun_event</listEntry>
+            <listEntry value="69">@Strings.settings_next_dawn_dusk_event</listEntry>
             <listEntry value="63">@Strings.settings_civil_dawn</listEntry>
             <listEntry value="64">@Strings.settings_civil_dusk</listEntry>
             <listEntry value="56">@Strings.settings_hrs_next_sun_event</listEntry>
@@ -1385,10 +1398,6 @@
                 <listEntry value="2">@Strings.settings_hide_top_labels</listEntry>
                 <listEntry value="3">@Strings.settings_hide_bottom_labels</listEntry>
             </settingConfig>
-    </setting>
-
-    <setting propertyKey="@Properties.experimentalBattOpt" title="@Strings.settings_experimental_batt_opt">
-        <settingConfig type="boolean" />
     </setting>
 
 </settings>
